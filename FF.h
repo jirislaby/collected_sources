@@ -12,11 +12,7 @@
 
 #include <osg/Vec3>
 
-#ifdef WIN32
-# include "ff/windows.h"
-#else
-# include "ff/linux.h"
-#endif
+#include "platform.h"
 
 namespace vrecko
 {
