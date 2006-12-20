@@ -1,13 +1,22 @@
+VRECKO=/public/VRECKO/unstable/linux_test
+
 CC=gcc
 CXX=g++
-CFLAGS=-g -Wall -O2
-INCLUDE=-I/public/VRECKO/unstable/linux_test/include
-LIBS=-L/public/VRECKO/unstable/linux_test/lib -lvrecko -losg -lProducer -lesg -lOpenThreads -losgDB -lpng -lxerces-c -lvecmath -lesg_osg -lphantom
+CXXFLAGS=-g -Wall -O2 -I$(VRECKO)/include -MMD -MF .$@.d -fomit-frame-pointer
+LDFLAGS=-L$(VRECKO)/lib -lvrecko -losg -lProducer -lesg -lOpenThreads -losgDB -lpng -lxerces-c -lvecmath -lesg_osg -lphantom
 
-all:test
+DEPS=$(wildcard .*.d)
+
+all: vrecko_ff.so
 
 clean:
-	rm -f core* *.o *.a test
+	rm -rf core* *.o $(DEPS)
 
-test:lmain.cpp linux.h windows.h FF.h
-	$(CXX) $(CFLAGS) $(INCLUDE) $(LIBS) -otest lmain.cpp
+mrproper: clean
+	rm -f *.so *.a
+
+vrecko_ff.so: platform.o
+
+.PHONY: all clean mrproper
+
+-include $(DEPS)
