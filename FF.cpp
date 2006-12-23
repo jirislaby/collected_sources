@@ -12,7 +12,7 @@
 #include "platform.h"
 #include "FF.h"
 
-inline void ForceFeedback::dispatch()
+void ForceFeedback::dispatch()
 {
 /*    char vystup[32];
     osg::Vec3 *vec3;
@@ -49,7 +49,7 @@ inline void ForceFeedback::dispatch()
 */
 }
 
-inline void ForceFeedback::putMessage(const unsigned int but, const int val)
+void ForceFeedback::putMessage(const unsigned int but, const int val)
 {
 /*
     char vystup[32];
@@ -63,7 +63,7 @@ inline void ForceFeedback::putMessage(const unsigned int but, const int val)
 */
 }
 
-inline void ForceFeedback::putMessage(const char* msg)
+void ForceFeedback::putMessage(const char* msg)
 {
 /*    char vystup[32];
 
