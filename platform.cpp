@@ -3,6 +3,7 @@
 #else
 # ifdef WIN32
 #  include "platform/windows.cpp"
+# else
 #  error Unsupported platform
 # endif
 #endif
