@@ -15,7 +15,7 @@ clean:
 mrproper: clean
 	rm -f *.so *.a
 
-vrecko_ff.so: platform.o
+vrecko_ff.so: platform.o FF.o
 
 .PHONY: all clean mrproper
 
