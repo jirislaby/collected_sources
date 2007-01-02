@@ -124,8 +124,7 @@ int LL_ForceFeedback::closeDevice()
 void LL_ForceFeedback::update()
 {
     struct input_event buf[32];
-    unsigned int a;
-    int readBytes;
+    unsigned int a, readBytes;
 
     if (portDes < 0) return;
 
