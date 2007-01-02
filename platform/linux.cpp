@@ -402,5 +402,3 @@ int LL_ForceFeedback::Effect::isPlaying()
 
     return 0;
 }
-
-#endif
