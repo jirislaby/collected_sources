@@ -20,6 +20,8 @@
 #include <vrecko/Device.h>
 #include <osg/Vec3>
 
+#include <set>
+
 namespace vrecko
 {
 
@@ -39,15 +41,15 @@ class /*VRECKO_EXPORT*/ LL_ForceFeedback : public Device
 		int load(const int);
 		void processList(char*, int);
 
-		std::set<ff_effect*> effects;
-		std::set<ff_effect*>::iterator setIter;
+		std::set<struct ff_effect *> effects;
+		std::set<struct ff_effect *>::iterator setIter;
 
 	    public:
 		typedef struct
 		{
 			int			portDes;
 			const char*		path;
-			ff_effect		*FFEffect;
+			struct ff_effect	*FFEffect;
 			int			onCreate, *retValue;
 		} EffectCreate, *PEffectCreate;
 
