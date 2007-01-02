@@ -12,6 +12,8 @@
 #include "platform.h"
 #include "FF.h"
 
+using namespace vrecko;
+
 void ForceFeedback::dispatch()
 {
 /*    char vystup[32];
