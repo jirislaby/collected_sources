@@ -24,11 +24,13 @@ using namespace vrecko;
 
 void LL_ForceFeedback::eff(int a)
 {
+    struct ff_effect eff;
+    struct input_event event;
     static double x = 0.0;
+
     x += (double)(sliders[0] << 6);
     if (x>0xffff) x = 0.0;
 
-    ff_effect eff;
     memset(&eff, 0, sizeof(eff));
     eff.type         = FF_CONSTANT;
     eff.id=cid;
@@ -38,7 +40,6 @@ void LL_ForceFeedback::eff(int a)
 
     if (ioctl(portDes, EVIOCSFF, &eff) < 0) perror("Uploading effect");
 
-    struct input_event event;
     memset(&event,0,sizeof(event));
     event.type=EV_FF;
     event.code=cid;
@@ -65,10 +66,13 @@ LL_ForceFeedback::~LL_ForceFeedback()
 
 int LL_ForceFeedback::openDevice()
 {
+    struct input_event event;
+    struct ff_effect eff;
+    unsigned char bitMask[EV_MAX/8 + 1];
+
     if ((portDes = open(port, O_NDELAY | O_RDWR)) < 0) return errno;
 
     // read supported event types
-    unsigned char bitMask[EV_MAX/8 + 1];
     if (ioctl(portDes, EVIOCGBIT(0, EV_MAX), bitMask) < 0) RET(errno);
 
 /*    for (int a = 0; a < (int)sizeof(bitMask); a++)
@@ -83,7 +87,6 @@ int LL_ForceFeedback::openDevice()
     if (!(bitMask[2] & 32)) RET(1);
 
     // switch off autocentering
-    struct input_event event;
     memset(&event, 0, sizeof(event));
     event.type  = EV_FF;
     event.code  = FF_AUTOCENTER;
@@ -92,7 +95,6 @@ int LL_ForceFeedback::openDevice()
     // write the whole buffer at once)
     if (write(portDes, &event, sizeof(event)) != sizeof(event)) RET(errno);
 
-    ff_effect eff;
     memset(&eff, 0, sizeof(eff));
     eff.type         = FF_CONSTANT;
     eff.id=-1;
@@ -121,17 +123,19 @@ int LL_ForceFeedback::closeDevice()
 
 void LL_ForceFeedback::update()
 {
+    struct input_event buf[32];
+    unsigned int a;
+    int readBytes;
+
     if (portDes < 0) return;
 
-    struct input_event buf[32];
-
-    int readBytes = read(portDes, buf, sizeof(buf));
+    readBytes = read(portDes, buf, sizeof(buf));
     if (readBytes < 0) return;
 
     if ((readBytes < 0) || (readBytes % sizeof(struct input_event))) return;
 
     readBytes /= sizeof(struct input_event);
-    for (int a = 0; a < readBytes; a++)
+    for (a = 0; a < readBytes; a++)
         switch (buf[a].type)
         {
             case EV_ABS:
