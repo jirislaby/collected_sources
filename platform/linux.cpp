@@ -17,6 +17,8 @@
 #include <vrecko/Device.h>
 #include <osg/Vec3>
 
+#include "linux.h"
+
 using namespace vrecko;
 
 void LL_ForceFeedback::eff(int a)

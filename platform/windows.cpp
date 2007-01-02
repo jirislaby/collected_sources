@@ -7,6 +7,8 @@
 
 #include <stdio.h>
 
+#include "windows.h"
+
 #define DIRECTINPUT_VERSION 0x800
 #include <dinput.h>
 
