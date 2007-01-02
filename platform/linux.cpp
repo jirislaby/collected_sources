@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include <time.h>
 #include <math.h>
+#include <errno.h>
 
 #include <vrecko/Device.h>
 #include <osg/Vec3>
