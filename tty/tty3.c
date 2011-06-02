@@ -8,6 +8,7 @@
 #include <sys/ioctl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 
 static void do_work(const char *tty)
 {
@@ -24,14 +25,21 @@ static void do_work(const char *tty)
 			warn("ioctl");
 		else if (vhangup()) warn("vhangup");
 		close(fd);
+		usleep(100 * (10 + random() % 1000));
 	}
 	exit(0);
 }
 
+static pid_t pid;
+
+void sig(int s)
+{
+	kill(pid, s);
+}
 
 int main(int argc, char **argv)
 {
-	switch (fork()) {
+	switch ((pid = fork())) {
 	case -1:
 		err(1, "fork");
 	case 0:
@@ -40,6 +48,9 @@ int main(int argc, char **argv)
 	default:
 		break;
 	}
+	signal(SIGINT, sig);
+	signal(SIGTERM, sig);
+	wait(NULL);
 
 	return 0;
 }

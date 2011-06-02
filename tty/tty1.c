@@ -11,7 +11,7 @@ int main(int argc, char **argv)
 	char buf[128];
 	int fd;
     while (1) {
-        fd = open("/dev/ttyS1", O_RDWR);
+        fd = open(argv[1], O_RDWR);
         if (fd < 0) {
                 warn("open");
                 continue;
