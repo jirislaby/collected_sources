@@ -1,6 +1,7 @@
 #include <err.h>
 #include <fcntl.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 
 #include <sys/ioctl.h>
@@ -19,4 +20,6 @@ int main(int argc, char *argv[])
 	if (ioctl(fd, TIOCSETD, &ld))
 		err(1, "ioctl");
 	close(fd);
+
+	return 0;
 }
