@@ -1,0 +1,14 @@
+CC=gcc
+CFLAGS=-Wall -Wstrict-prototypes -MMD -MF .$@.d -Os -fomit-frame-pointer -g 
+DEPS=$(wildcard .*.d)
+
+all: diatest
+
+diatest: diatest.o diasel.o
+
+clean:
+	@rm -f *.o diatest $(DEPS)
+
+.PHONY: all clean
+
+-include $(DEPS)

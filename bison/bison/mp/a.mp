@@ -1,0 +1,11 @@
+r'cat /etc/passwd';
+p"Hello world";
+p("The second Hello World");
+p'The third Hello World');
+p('The fourth Hello World';
+str $a;
+$a="sdas";
+p $a;
+i $b;
+$b=132;
+p $b;

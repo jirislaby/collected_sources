@@ -1,0 +1,8 @@
+Témìø v ka¾dém adresáøi je soubor Makefile, jako v ka¾dém projektu. Pøed
+samotnou konfigurací jádra se zkompiluje vámi zadaný konfigurátor nad TUI/GUI,
+který jste vybrali. Pod ním existuje øada funkcí, které parsují .config,
+Kconfig, zapisují konfiguraci jako definice do hlavièkových souborù a mnoho
+dal¹ích. Nikomu nic nebrání v tom napsat vlastní rozhraní, které bude volat
+funkce a bude postavené nad jeho oblíbeným prostøedí (tøeba konfigurovat jádro
+psaním kódu v base64.
+

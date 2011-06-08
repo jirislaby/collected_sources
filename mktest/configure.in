@@ -1,0 +1,17 @@
+AC_PREREQ(2.61)
+
+AC_INIT([ble], [1.0], [gary@gnu.org])
+
+AM_INIT_AUTOMAKE([1.9 foreign])
+
+AC_PROG_CC
+
+dnl AC_PROG_LIBTOOL
+
+AM_CONFIG_HEADER(config.h)
+
+AM_PATH_ALSA(0.9.0, , :)
+
+AC_CONFIG_FILES([Makefile])
+
+AC_OUTPUT
