@@ -1,0 +1,28 @@
+; ************************************************************
+; PROJECT:
+; AUTHOR:
+; ************************************************************
+
+; Micro + software running
+; ------------------------------------------------------------
+.MICRO "ATMega32"
+.TOOLCHAIN "GENERIC"
+.TARGET    "my_idea.hex"
+.COFF      "my_idea.cof"
+.SOURCE    "a.c"
+
+.TRACE              ; Activate micro trace
+.plot v(PD0) v(PB0)
+
+; Following lines are optional; if not included
+; exactly these values are taken by default
+; ------------------------------------------------------------
+.POWER VDD=5 VSS=0  ; Power nodes
+.CLOCK 1meg         ; Micro clock
+.STORE 250m         ; Trace (micro+signals) storage time
+
+; Micro nodes: RESET, PB0-PB5, ACO
+; Define here the hardware around the micro
+; ------------------------------------------------------------
+
+
