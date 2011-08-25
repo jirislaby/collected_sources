@@ -10,15 +10,15 @@ int main(int argc, char **argv)
 {
 	char buf[128];
 	int fd;
-    while (1) {
-        fd = open(argv[1], O_RDWR);
-        if (fd < 0) {
-                warn("open");
-                continue;
-        }
-	if (read(fd, buf, sizeof(buf)) < 0)
-                warn("read");
-        close(fd);
-    }
-    return 0;
-}
+	while (1) {
+		fd = open(argv[1], O_RDWR);
+		if (fd < 0) {
+			warn("open");
+			continue;
+		}
+		if (read(fd, buf, sizeof(buf)) < 0)
+			warn("read");
+			close(fd);
+		}
+		return 0;
+	}
