@@ -9,7 +9,7 @@
 
 int main(int argc, char **argv)
 {
-	struct termios attr;
+//	struct termios attr;
 	int fd;
 
 	if (!--argc)

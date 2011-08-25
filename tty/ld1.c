@@ -1,6 +1,7 @@
 #include <err.h>
 #include <fcntl.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 
 #include <sys/ioctl.h>
@@ -28,4 +29,6 @@ int main(int argc, char *argv[])
 			sleep(2);
 	}
 	close(fd);
+
+	return 0;
 }
