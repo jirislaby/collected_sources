@@ -1,7 +1,8 @@
 #include <err.h>
-#include <errno.h>
 #include <fcntl.h>
+#include <signal.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 
 #include <sys/ioctl.h>
@@ -9,52 +10,31 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
-static void steal_back(void)
-{
-	int s0 = open("/dev/ttyS0", O_RDWR|O_NOCTTY);
-	if (s0 < 0)
-		err(1, "steal open");
-	if (ioctl(s0, TIOCSCTTY, 1))
-		warn("ioctl");
-	close(s0);
-}
-
-static void loop(const char *tty)
-{
-//	char buf[128];
-	int fd;
-
-	while (1) {
-		fd = open(tty, O_RDWR);
-		if (fd < 0) {
-			if (errno == ENXIO)
-				steal_back();
-/*			else
-				err(1, "open: err=%d", errno);*/
-			continue;
-		}
-/*		if (read(fd, buf, sizeof(buf)) < 0)
-			warn("read");*/
-		close(fd);
-	}
-}
-
 static void do_work(const char *tty)
 {
+	int fd;
+
 	if (signal(SIGHUP, SIG_IGN) == SIG_ERR)
 		err(1, "signal(SIGHUP)");
 
 	setsid();
 
-	loop(tty);
+	while (1) {
+		fd = open(tty, O_RDWR|O_NOCTTY);
+		if (fd < 0) {
+			warn("open");
+			continue;
+		}
+		if (ioctl(fd, TIOCSCTTY, 1))
+			warn("ioctl");
+		close(fd);
+	}
+	exit(0);
 }
 
 int main(int argc, char **argv)
 {
 	pid_t pid;
-
-	loop(argv[1]);
-	return 0;
 
 	switch (pid = fork()) {
 	case 0:
@@ -75,5 +55,6 @@ int main(int argc, char **argv)
 		break;
 	}
 	}
+
 	return 0;
 }
