@@ -45,6 +45,7 @@ static void do_work(const char *tty)
 		else if (vhangup())
 			errc |= 4;
 		close(fd);
+//		usleep(20 * (10 + random() % 50));
 	}
 	close(con);
 	exit(errc);
