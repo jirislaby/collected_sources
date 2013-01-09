@@ -1,12 +1,16 @@
-#include <arpa/inet.h>
+#include <err.h>
+
 #include <netdb.h>
-#include <netinet/in.h>
 #include <stdio.h>
+#include <unistd.h>
+
+#include <arpa/inet.h>
+#include <netinet/in.h>
+
 #include <sys/select.h>
 #include <sys/socket.h>
 #include <sys/time.h>
 #include <sys/types.h>
-#include <unistd.h>
 
 void loop(int fd)
 {
@@ -47,25 +51,18 @@ int main(int argc, char **argv)
 {
 	struct protoent *pe = getprotobyname("tcp");
 	struct addrinfo *out, ai = {0, PF_UNSPEC, SOCK_STREAM, pe->p_proto, };
-	int ret = 0;
-	int fd;
+	int sock;
 
 	argc--, argv++;
 
-	if (!argc) {
-		fprintf(stderr, "Number of args is wrong. At least one is "
-			"needed (network name or address)\n");
-		ret = 1;
-		goto out;
-	}
+	if (!argc)
+		errx(1, "Number of args is wrong. At least one is "
+			"needed (network name or address)");
 
-	if (getaddrinfo(argv[0], argv[1] ? : "10001", &ai, &out)) {
-		perror("getaddrinfo error");
-		ret = 100;
-		goto out;
-	}
+	if (getaddrinfo(argv[0], argv[1] ? : "10001", &ai, &out))
+		err(1, "getaddrinfo error");
 
-	switch (out->ai_addr->sa_family) {
+	switch (out->ai_family) {
 	case AF_INET: {
 		struct sockaddr_in *in =
 			(struct sockaddr_in*)out->ai_addr;
@@ -83,28 +80,21 @@ int main(int argc, char **argv)
 		break;
 	}
 	default:
-		puts("unknown address class");
-		ret = 2;
-		goto frout;
+		errx(1, "unknown address class");
 	}
 
-	fd = socket(out->ai_addr->sa_family, SOCK_STREAM, pe->p_proto);
-	if (fd < 0) {
-		perror("socket error");
-		ret = 3;
-		goto frout;
-	}
+	sock = socket(out->ai_family, out->ai_socktype, out->ai_protocol);
+	if (sock < 0)
+		err(1, "socket");
 
-	if (connect(fd, out->ai_addr, out->ai_addrlen)) {
-		perror("connect error");
-		goto clout;
-	}
+	if (connect(sock, out->ai_addr, out->ai_addrlen))
+		err(1, "connect");
 
-	loop(fd);
-clout:
-	close(fd);
-frout:	
 	freeaddrinfo(out);
-out:
-	return ret;
+
+	loop(sock);
+
+	close(sock);
+
+	return 0;
 }
