@@ -127,6 +127,7 @@ static void decode(struct holder *holder)
 
 		/* avg of all channels */
 		for (a = 0; a < count; a++) {
+			holder->samples[a] = 0;
 			for (ch = 0; ch < channels; ch++)
 				holder->samples[a] += buf[a * channels + ch];
 			holder->samples[a] /= channels;
