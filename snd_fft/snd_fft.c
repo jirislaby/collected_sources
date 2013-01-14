@@ -67,10 +67,11 @@ static void destroy_fftw(struct holder *holder)
 
 static void show_graph(const struct holder *holder)
 {
-	unsigned int sum = 0, sum_n = holder->samples_count / 2 / HEIGHT;
+	unsigned int usable_count = holder->samples_count / 2;
+	unsigned int sum = 0, sum_n = usable_count / HEIGHT;
 	unsigned int a, b, idx = 0;
 
-	for (a = 0; a < holder->samples_count / 2; a++) {
+	for (a = 0; a < usable_count; a++) {
 		sum += (unsigned int)(holder->samples[a] * WIDTH / holder->max);
 		if (++idx == sum_n) {
 			sum /= sum_n;
