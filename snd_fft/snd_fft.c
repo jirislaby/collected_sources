@@ -10,15 +10,12 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
+#include <ncurses.h>
 #include <asoundlib.h>
-
 #include <sndfile.h>
 
 #include <complex.h>
 #include <fftw3.h>
-
-#define WIDTH	80
-#define HEIGHT	40
 
 struct holder {
 	SNDFILE *infile;
@@ -28,6 +25,8 @@ struct holder {
 
 	fftw_complex *output;
 	fftw_plan plan;
+
+	int height, width;
 
 	unsigned int samples_count;
 
@@ -68,19 +67,30 @@ static void destroy_fftw(struct holder *holder)
 static void show_graph(const struct holder *holder)
 {
 	unsigned int usable_count = holder->samples_count / 2;
-	unsigned int sum = 0, sum_n = usable_count / HEIGHT;
-	unsigned int a, b, idx = 0;
+	unsigned int height = holder->height;
+	unsigned int max = 0, sum = 0, sum_n = usable_count / holder->width;
+	unsigned int a, b, idx = 0, x = 0;
 
+	erase();
 	for (a = 0; a < usable_count; a++) {
-		sum += (unsigned int)(holder->samples[a] * WIDTH / holder->max);
+		unsigned int sample = holder->samples[a] * height / holder->max;
+		if (sample > max)
+			max = sample;
+		sum += sample;
 		if (++idx == sum_n) {
 			sum /= sum_n;
-			for (b = 0; b < sum; b++)
-				printf("*");
-			printf("\n");
-			sum = idx = 0;
+			color_set(1, NULL);
+			for (b = height - max; b < height - sum; b++)
+				mvaddch(b, x, '|');
+			color_set(2, NULL);
+			for (b = height - sum; b < height; b++)
+				mvaddch(b, x, '*');
+			max = sum = idx = 0;
+			x++;
 		}
 	}
+	move(0, 0);
+	refresh();
 }
 
 static void compute_fftw(struct holder *holder)
@@ -161,10 +171,17 @@ static void open_io(struct holder *holder, const char *filename)
 			holder->ininfo.samplerate, 1, 500000);
 	if (err < 0)
 		errx(1, "alsa set_params: %s", snd_strerror(err));
+
+	initscr();
+	start_color();
+	init_pair(1, COLOR_BLUE, COLOR_BLACK);
+	init_pair(2, COLOR_WHITE, COLOR_BLACK);
+	getmaxyx(stdscr, holder->height, holder->width);
 }
 
 static void close_io(struct holder *holder)
 {
+	endwin();
 	snd_pcm_close(holder->alsa_handle);
 	sf_close(holder->infile);
 }
@@ -179,6 +196,10 @@ int main(int argc, char **argv)
 	open_io(&holder, argv[1]);
 
 	holder.samples_count = holder.ininfo.samplerate / 100;
+
+	/* do we have enough data? no = clamp the graph */
+	if (holder.width > holder.samples_count / 2)
+		holder.width = holder.samples_count / 2;
 
 	prepare_fftw(&holder);
 
