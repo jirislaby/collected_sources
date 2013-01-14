@@ -88,7 +88,7 @@ static void compute_fftw(struct holder *holder)
 
 	fftw_execute(holder->plan);
 
-	for (a = 0; a < holder->samples_count; a++) {
+	for (a = 0; a < holder->samples_count / 2; a++) {
 		holder->samples[a] = cabs(holder->output[a]);
 		if (holder->samples[a] > holder->max)
 			holder->max = holder->samples[a];
