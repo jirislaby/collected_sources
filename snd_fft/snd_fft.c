@@ -64,6 +64,33 @@ static void destroy_fftw(struct holder *holder)
 	fftw_free(holder->samples);
 }
 
+/* compute avg of all channels */
+static void compute_avg(struct holder *holder, float *buf, unsigned int count)
+{
+	unsigned int channels = holder->ininfo.channels;
+	unsigned int a, ch;
+
+	for (a = 0; a < count; a++) {
+		holder->samples[a] = 0;
+		for (ch = 0; ch < channels; ch++)
+			holder->samples[a] += buf[a * channels + ch];
+		holder->samples[a] /= channels;
+	}
+}
+
+static void compute_fftw(struct holder *holder)
+{
+	unsigned int a;
+
+	fftw_execute(holder->plan);
+
+	for (a = 0; a < holder->samples_count / 2; a++) {
+		holder->samples[a] = cabs(holder->output[a]);
+		if (holder->samples[a] > holder->max)
+			holder->max = holder->samples[a];
+	}
+}
+
 static void show_graph(const struct holder *holder)
 {
 	unsigned int usable_count = holder->samples_count / 2;
@@ -93,19 +120,6 @@ static void show_graph(const struct holder *holder)
 	refresh();
 }
 
-static void compute_fftw(struct holder *holder)
-{
-	unsigned int a;
-
-	fftw_execute(holder->plan);
-
-	for (a = 0; a < holder->samples_count / 2; a++) {
-		holder->samples[a] = cabs(holder->output[a]);
-		if (holder->samples[a] > holder->max)
-			holder->max = holder->samples[a];
-	}
-}
-
 static void write_snd(struct holder *holder, float const *samples,
 		unsigned int count)
 {
@@ -122,30 +136,24 @@ static void decode(struct holder *holder)
 {
 	unsigned int channels = holder->ininfo.channels;
 	float buf[channels * holder->samples_count];
-	int count, a, ch;
+	int count, short_read;
 
-	while (1) {
+	do {
 		count = sf_readf_float(holder->infile, buf,
 				holder->samples_count);
-		if (count == 0)
+		if (count <= 0)
 			break;
+
+		/* the last chunk? */
+		short_read = count != holder->samples_count;
+		if (!short_read) {
+			compute_avg(holder, buf, count);
+			compute_fftw(holder);
+			show_graph(holder);
+		}
 
 		write_snd(holder, buf, count);
-
-		/* this was the last chunk */
-		if (count != holder->samples_count)
-			break;
-
-		/* avg of all channels */
-		for (a = 0; a < count; a++) {
-			holder->samples[a] = 0;
-			for (ch = 0; ch < channels; ch++)
-				holder->samples[a] += buf[a * channels + ch];
-			holder->samples[a] /= channels;
-		}
-		compute_fftw(holder);
-		show_graph(holder);
-	}
+	} while (!short_read);
 }
 
 static void open_io(struct holder *holder, const char *filename)
