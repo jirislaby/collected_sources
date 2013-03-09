@@ -1,1 +1,9 @@
 *.o
+.deps/
+autom4te.cache/
+aclocal.m4
+config.log
+config.status
+depcomp
+install-sh
+missing
