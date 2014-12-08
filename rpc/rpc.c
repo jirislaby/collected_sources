@@ -5,11 +5,15 @@
 #define RUSERSPROG 0x40000000
 #define RUSERSVERS 1
 
-static void dispatch(struct svc_req *request, SVCXPRT *xprt)
+static void dispatch(struct svc_req *req, SVCXPRT *xprt)
 {
-	if (request->rq_proc == 0)
-		svc_sendreply(xprt, (xdrproc_t)xdr_void, NULL);
-	printf("request\n");
+	if (req->rq_proc == 0) {
+		int in;
+		svc_getargs(xprt, (xdrproc_t)xdr_int, (char *)&in);
+		in++;
+		svc_sendreply(xprt, (xdrproc_t)xdr_int, (char *)&in);
+	}
+	printf("request %ld\n", req->rq_proc);
 }
 
 int main(void)
