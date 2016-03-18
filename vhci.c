@@ -16,13 +16,20 @@ int main()
 	};
 	int fd;
 
-	fd = open("/dev/vhci", O_RDWR);
-	if (fd < 0)
-		err(1, "open");
+	while (1) {
+		fd = open("/dev/vhci", O_RDWR);
+		if (fd < 0)
+			err(1, "open");
 
-	if (writev(fd, &iov, 1) < 0)
-		err(1, "writev");
+		usleep(50);
 
-	close(fd);
+		if (writev(fd, &iov, 1) < 0)
+			err(1, "writev");
+
+		usleep(50);
+
+		close(fd);
+	}
+
 	return 0;
 }
