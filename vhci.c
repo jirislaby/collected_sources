@@ -1,6 +1,8 @@
 #include <err.h>
 #include <fcntl.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 #include <unistd.h>
 
 #include <sys/stat.h>
@@ -22,19 +24,23 @@ int main(int argc, char **argv)
 	else
 		puts("Doing open/close test");
 
+	srand(time(NULL));
+
 	while (1) {
+		const int delta = (rand() % 200 - 100) * 100;
+
 		fd = open("/dev/vhci", O_RDWR);
 		if (fd < 0)
 			err(1, "open");
 		if (do_write) {
-			usleep(50);
+			usleep(50000 + delta / 2);
 
 			if (writev(fd, &iov, 1) < 0)
 				err(1, "writev");
 
-			usleep(50);
+			usleep(50000 + delta / 2);
 		} else
-			usleep(100);
+			usleep(100000 + delta);
 
 		close(fd);
 	}
