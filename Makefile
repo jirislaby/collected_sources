@@ -1,4 +1,5 @@
-CFLAGS=-Wall -O2
+CC=gcc
+CFLAGS=-Wall -Og -ggdb
 
 all: ipv6 remote_tuner root vhci
 
