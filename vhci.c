@@ -7,33 +7,34 @@
 #include <sys/types.h>
 #include <sys/uio.h>
 
-#define DO_WRITE 0
-
-int main()
+int main(int argc, char **argv)
 {
-#if DO_WRITE
 	char buf[] = { 0xff, 0 };
 	struct iovec iov = {
 		.iov_base = buf,
 		.iov_len = sizeof(buf),
 	};
-#endif
 	int fd;
+	_Bool do_write = argc == 2;
+
+	if (do_write)
+		puts("Doing write test");
+	else
+		puts("Doing open/close test");
 
 	while (1) {
 		fd = open("/dev/vhci", O_RDWR);
 		if (fd < 0)
 			err(1, "open");
-#if DO_WRITE
-		usleep(50);
+		if (do_write) {
+			usleep(50);
 
-		if (writev(fd, &iov, 1) < 0)
-			err(1, "writev");
+			if (writev(fd, &iov, 1) < 0)
+				err(1, "writev");
 
-		usleep(50);
-#else
-		usleep(100);
-#endif
+			usleep(50);
+		} else
+			usleep(100);
 
 		close(fd);
 	}
