@@ -27,20 +27,27 @@ int main(int argc, char **argv)
 	srand(time(NULL));
 
 	while (1) {
-		const int delta = (rand() % 200 - 100) * 100;
+		const unsigned int sched_delay = 10 * 1000;
+		const unsigned int delta_jitter = sched_delay / 200;
+		const unsigned int delta_multip = delta_jitter < 100 ? 1 :
+			delta_jitter / 100;
+		const int delta = (rand() % (delta_jitter * 2) - delta_jitter) *
+			delta_multip;
+		const unsigned int divisor = do_write ? 2 : 1;
+		const unsigned int delay = (sched_delay + delta) / divisor;
 
 		fd = open("/dev/vhci", O_RDWR);
 		if (fd < 0)
 			err(1, "open");
-		if (do_write) {
-			usleep(50000 + delta / 2);
 
+		usleep(delay);
+
+		if (do_write) {
 			if (writev(fd, &iov, 1) < 0)
 				err(1, "writev");
 
-			usleep(50000 + delta / 2);
-		} else
-			usleep(100000 + delta);
+			usleep(delay);
+		}
 
 		close(fd);
 	}
