@@ -1,4 +1,5 @@
 #include <err.h>
+#include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -43,8 +44,11 @@ int main(int argc, char **argv)
 		usleep(delay);
 
 		if (do_write) {
-			if (writev(fd, &iov, 1) < 0)
+			ssize_t ret = writev(fd, &iov, 1);
+			if (ret < 0 && errno != EBADFD)
 				err(1, "writev");
+			if (ret >= 0 && ret != 2)
+				errx(1, "writev didn't return 2: %zd", ret);
 
 			usleep(delay);
 		}
