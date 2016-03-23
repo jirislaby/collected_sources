@@ -7,14 +7,16 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
-#define ITER 100
+#define ITER 1000
 #define FORKERS 15
-#define THREADS (1700/FORKERS) // 1850 is proc max
+#define THREADS (6000/FORKERS) // 1850 is proc max
 
 static void fork_100_wait()
 {
-	unsigned a;
+	unsigned a, to_wait = 0;
 	pid_t pid;
+
+	printf("\t%d forking %d\n", THREADS, getpid());
 
 	for (a = 0; a < THREADS; a++) {
 		switch ((pid = fork())) {
@@ -23,19 +25,21 @@ static void fork_100_wait()
 			exit(0);
 			break;
 		case -1:
-			err(1, "fork");
+			//warn("NODIE fork");
 			break;
 		default:
+			to_wait++;
 			break;
 		}
 	}
 
-	printf("100 forked from %d, waiting\n", getpid());
+	printf("\t%d forked from %d, waiting for %d\n", THREADS, getpid(),
+			to_wait);
 
-	for (a = 0; a < THREADS; a++)
+	for (a = 0; a < to_wait; a++)
 		wait(NULL);
 
-	printf("100 forked from %d, done\n", getpid());
+	printf("\t%d waited from %d\n", THREADS, getpid());
 }
 
 static void run_forkers()
@@ -50,17 +54,17 @@ static void run_forkers()
 			exit(0);
 			break;
 		case -1:
-			err(1, "fork %d", a);
+			err(1, "DIE fork of %d'th forker", a);
 			break;
 		default:
-			printf("forker%d %d\n", a, forkers[a]);
+			//printf("\tforker%d %d\n", a, forkers[a]);
 			break;
 		}
 	}
 
 	for (a = 0; a < FORKERS; a++) {
 		waitpid(forkers[a], NULL, 0);
-		printf("forker%d (%d) done\n", a, forkers[a]);
+		//printf("\tforker%d (%d) done\n", a, forkers[a]);
 	}
 }
 
