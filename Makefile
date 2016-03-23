@@ -1,6 +1,6 @@
 CC=gcc
 CFLAGS=-Wall -Og -ggdb
-TARGETS=ipv6 remote_tuner root vhci
+TARGETS=fork_leak ipv6 remote_tuner root vhci
 
 all: $(TARGETS)
 
