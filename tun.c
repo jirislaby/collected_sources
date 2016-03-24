@@ -1,6 +1,7 @@
 #include <err.h>
 #include <fcntl.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 
 #include <sys/ioctl.h>
@@ -26,6 +27,8 @@ int main()
 
 	if (ioctl(r0, TUNSETIFF, &ifreq) < 0)
 		err(1, "ioctl");
+
+	system("ip l set dev kill up");
 
 	if (write(r0, blank, sizeof(blank)) < 0)
 		err(1, "write");
