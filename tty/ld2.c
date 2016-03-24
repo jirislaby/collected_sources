@@ -16,14 +16,16 @@ int main(int argc, char *argv[])
 	if (fd < 0)
 		err(1, "open");
 
-	ld1 = atoi(*++argv);
-	ld2 = atoi(*++argv);
+	ld1 = atoi(argv[2]);
+	ld2 = atoi(argv[3]);
+
+	printf("Switching between %d, %d\n", ld1, ld2);
 
 	while (1) {
 		if (ioctl(fd, TIOCSETD, &ld1))
-			err(1, "ioctl");
+			warn("ioctl");
 		if (ioctl(fd, TIOCSETD, &ld2))
-			err(1, "ioctl");
+			warn("ioctl");
 	}
 	close(fd);
 }

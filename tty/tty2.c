@@ -17,10 +17,12 @@ int main(int argc, char **argv)
 			continue;
 		}
 
-		ld1 = 0; ld2 = 2;
+		ld1 = 0; ld2 = 24;
 		while (1) {
-			ioctl(fd, TIOCSETD, &ld1);
-			ioctl(fd, TIOCSETD, &ld2);
+			if (ioctl(fd, TIOCSETD, &ld1))
+				warn("ioctl 1");
+			if (ioctl(fd, TIOCSETD, &ld2))
+				warn("ioctl 1");
 		}
 		close(fd);
 	}
