@@ -34,10 +34,10 @@ static void thr()
 
 	dup2(fd2, fd1);
 
-	usleep(10000);
+	usleep(1000);
 	close(fd2);
 	close(fd1);
-	usleep(10000);
+	usleep(1000);
 }
 
 int main()
