@@ -1,5 +1,14 @@
+*.ko
 *.o
+*~
+*.mod.c
+.*.cmd
 .deps/
+.tmp_versions/
+
+Module.symvers
+modules.order
+
 autom4te.cache/
 aclocal.m4
 config.log
