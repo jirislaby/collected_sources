@@ -1,6 +1,6 @@
 CC=gcc
 CFLAGS=-Wall -Og -ggdb
-TARGETS=fork_leak ipv6 malloc_pages open_loop remote_tuner root snd tun vhci
+TARGETS=fork_leak ipv6 malloc_pages open_loop remote_tuner root snd tun usb_killer vhci
 
 all: $(TARGETS)
 
