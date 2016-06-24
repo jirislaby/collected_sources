@@ -21,7 +21,7 @@ bool my_tray::eventFilter(QObject *obj, QEvent *event)
 void my_tray::activate(QSystemTrayIcon::ActivationReason reason)
 {
 	qDebug() << __func__ << reason;
-	if (reason == QSystemTrayIcon::Context)
+//	if (reason == QSystemTrayIcon::Context)
 		abort();
 }
 
