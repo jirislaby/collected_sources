@@ -15,8 +15,6 @@ protected:
 
 private slots:
 	void activate(QSystemTrayIcon::ActivationReason reason);
-private:
-	QMenu menu;
 };
 
 #endif
