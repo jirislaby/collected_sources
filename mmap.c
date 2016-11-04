@@ -19,6 +19,6 @@ int main()
 		printf(" %.2x", m[a]);
 	}
 	puts("");
-	strcpy(&m[500 << 10], "ahoj");
+	strcpy((char *)&m[500 << 10], "ahoj");
 	return 0;
 }
