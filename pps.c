@@ -2,10 +2,12 @@
 #include <sys/stat.h>
 #include <sys/ioctl.h>
 
+#include <linux/tty.h>
+
 int main()
 {
-	int r0 = open("/dev/ptmx", 0x200);
-	int val = 0x12;
-	ioctl(r0, 0x5423, &val); // TIOCSETD
+	int r0 = open("/dev/ptmx", O_RDONLY);
+	int val = N_PPS;
+	ioctl(r0, TIOCSETD, &val); // TIOCSETD
 
 }
