@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include <unistd.h>
 
 #include <sys/fcntl.h>
@@ -12,9 +13,10 @@ static void km()
 	int r0 = open("/dev/ptmx", O_RDONLY);
 	int val = N_PPS;
 	ioctl(r0, TIOCSETD, &val); // TIOCSETD
+	exit(0);
 }
 
-#define P 40
+#define P 15
 
 int main()
 {
@@ -27,5 +29,7 @@ int main()
 
 		for (a = 0; a < P; a++)
 			wait(NULL);
+
+		usleep(200000);
 	}
 }
