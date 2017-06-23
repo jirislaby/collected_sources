@@ -9,7 +9,7 @@
 
 #include <linux/tty.h>
 
-#include "gsmmux.h"
+#include <linux/gsmmux.h>
 
 #define DEFAULT_SPEED	B115200
 
