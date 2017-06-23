@@ -19,11 +19,13 @@ int main(int argc, char **argv)
 //			warn("open");
 			continue;
 		}
+		write(fd, "x", 1);
 		rd = read(fd, buf, sizeof(buf));
 		if (rd > 0)
 			write(1, buf, rd);
 
 		close(fd);
+		write(1, "y", 1);
 	}
 	return 0;
 }
