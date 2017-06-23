@@ -45,17 +45,23 @@ static void do_work(const char *tty)
 		else if (vhangup())
 			errc |= 4;
 		close(fd);
-//		usleep(20 * (10 + random() % 50));
+		usleep(20 * (10 + random() % 50));
 	}
 	close(con);
 	exit(errc);
 }
 
+static pid_t child;
+
+static void sig(int s)
+{
+	kill(child, s);
+	printf("killed %d\n", child);
+}
+
 int main(int argc, char **argv)
 {
-	pid_t pid;
-
-	switch (pid = fork()) {
+	switch (child = fork()) {
 	case 0:
 		do_work(argv[1]);
 		break;
@@ -64,8 +70,10 @@ int main(int argc, char **argv)
 		break;
 	default:
 	{
+		signal(SIGINT, sig);
+
 		int stat;
-		waitpid(pid, &stat, 0);
+		waitpid(child, &stat, 0);
 		if (stat) {
 			fprintf(stderr, "exited with: %d sig=%d signr=%u\n",
 					WEXITSTATUS(stat), WIFSIGNALED(stat),
