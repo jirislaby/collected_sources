@@ -52,9 +52,13 @@ static bool set_termios2(int tty, const struct termios2 *t)
 	return true;
 }
 
-static bool send_seq(int tty)
+static bool send_seq(int tty, unsigned char val)
 {
 	char seq[64] = { [0 ... 63] = 0xff };
+	int a;
+
+	for (a = 0; a < sizeof(seq); a++)
+		seq[a] = val;
 
 	if (write(tty, seq, sizeof(seq)) <= 0) {
 		warn("cannot send sequence");
@@ -64,27 +68,44 @@ static bool send_seq(int tty)
 	return true;
 }
 
-static void send_dmx512(int tty, const struct termios2 *t_57,
+static void send_dmx512(int tty, int val, const struct termios2 *t_57,
 		const struct termios2 *t_250)
 {
+	const int top = 127;
+	int inc = 4;
+
 	while (!killed) {
 		if (!set_termios2(tty, t_57))
 			break;
-		/* send BREAK */
+		/* BREAK */
 		if (!send_char(tty, 0x00))
 			break;
 		if (!set_termios2(tty, t_250))
 			break;
-#if 0
-		/* send MAB */
-		if (!send_char(tty, 0xff))
-			break;
-		/* send start code */
+		/* start code */
 		if (!send_char(tty, 0))
 			break;
-#endif
-		if (!send_seq(tty))
+		if (!send_seq(tty, val))
 			break;
+
+		if (val == 0)
+			sleep(2); /* 2 vteriny vypnuty */
+		else if (val == top)
+			sleep(5); /* 5 vterin zapnuty */
+		else
+			usleep(20000); /* 20 ms jeden krok */
+
+		val += inc;
+		if (val > top) {
+			inc = -inc;
+			val = top;
+		}
+		if (val < 0) {
+			inc = -inc;
+			val = 0;
+		}
+
+		printf("val=%.2x\n", val);
 	}
 }
 
@@ -137,9 +158,15 @@ int main(int argc, char **argv)
 {
 	struct termios2 orig, t_57, t_250;
 	int tty;
+	unsigned char val = 0xff;
 
 	if (argc < 2)
 		return EXIT_FAILURE;
+
+	if (argc > 2)
+		val = atoi(argv[2]);
+
+	printf("using val=%.2x\n", val);
 
 	setup_signals();
 
@@ -150,7 +177,7 @@ int main(int argc, char **argv)
 	flush(tty);
 	setup(tty, &orig, &t_57, &t_250);
 
-	send_dmx512(tty, &t_57, &t_250);
+	send_dmx512(tty, val, &t_57, &t_250);
 
 	puts("cleaning up");
 
