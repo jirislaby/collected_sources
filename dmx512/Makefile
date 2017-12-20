@@ -1,4 +1,6 @@
 CFLAGS=-Wall -O2 -g -pie
+LDFLAGS=-Wall -O2 -g
+CC=gcc
 LD=gcc
 
 all: dmx512
