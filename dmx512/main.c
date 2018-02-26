@@ -52,13 +52,15 @@ static bool set_termios2(int tty, const struct termios2 *t)
 	return true;
 }
 
-static bool send_seq(int tty, unsigned char val)
+static bool send_seq(int tty, unsigned off, unsigned char val)
 {
-	char seq[64] = { [0 ... 63] = 0xff };
-	int a;
+	char seq[64] = { };
+/*	int a;
 
 	for (a = 0; a < sizeof(seq); a++)
-		seq[a] = val;
+		seq[a] = val;*/
+	// 11 a 23
+	seq[23] = val;
 
 	if (write(tty, seq, sizeof(seq)) <= 0) {
 		warn("cannot send sequence");
@@ -72,6 +74,7 @@ static void send_dmx512(int tty, int val, const struct termios2 *t_57,
 		const struct termios2 *t_250)
 {
 	const int top = 127;
+	unsigned int off = 11;
 	int inc = 4;
 
 	while (!killed) {
@@ -85,7 +88,7 @@ static void send_dmx512(int tty, int val, const struct termios2 *t_57,
 		/* start code */
 		if (!send_char(tty, 0))
 			break;
-		if (!send_seq(tty, val))
+		if (!send_seq(tty, off, val))
 			break;
 
 		if (val == 0)
@@ -103,9 +106,10 @@ static void send_dmx512(int tty, int val, const struct termios2 *t_57,
 		if (val < 0) {
 			inc = -inc;
 			val = 0;
+			off++;
 		}
 
-		printf("val=%.2x\n", val);
+		printf("off=%2u val=%.2x\n", off, val);
 	}
 }
 
@@ -115,11 +119,26 @@ static void flush(int tty)
 		err(EXIT_FAILURE, "cannot flush");
 }
 
+static void check_setting(int tty, const struct termios2 *t)
+{
+	struct termios2 tmp;
+
+	if (ioctl(tty, TCSETS2, t))
+		err(EXIT_FAILURE, "%s: cannot call TCSETS2", __func__);
+	if (ioctl(tty, TCGETS2, &tmp))
+		err(EXIT_FAILURE, "%s: cannot call TCGETS2", __func__);
+
+	if (tmp.c_ispeed != t->c_ispeed || tmp.c_ospeed != t->c_ospeed)
+		errx(EXIT_FAILURE, "%s: could not set speed to %d: ispeed=%d ospeed=%d",
+				__func__, t->c_ispeed,
+				tmp.c_ispeed, tmp.c_ospeed);
+}
+
 static void setup(int tty, struct termios2 *orig, struct termios2 *t_57,
 		struct termios2 *t_250)
 {
 	if (ioctl(tty, TCGETS2, orig))
-		err(EXIT_FAILURE, "cannot call TCGETS2");
+		err(EXIT_FAILURE, "cannot call TCGETS2(orig)");
 
 	memcpy(t_57, orig, sizeof(*orig));
 	memcpy(t_250, orig, sizeof(*orig));
@@ -131,8 +150,11 @@ static void setup(int tty, struct termios2 *orig, struct termios2 *t_57,
 
 	t_250->c_cflag &= ~CBAUD;
 	t_250->c_cflag |= BOTHER | CLOCAL | CS8;
-	t_250->c_ispeed = 250000;
-	t_250->c_ospeed = 250000;
+	t_250->c_ispeed = 250030;
+	t_250->c_ospeed = 250030;
+
+	check_setting(tty, t_57);
+	check_setting(tty, t_250);
 }
 
 static void sig(int s)
