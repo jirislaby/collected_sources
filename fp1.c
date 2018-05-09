@@ -1,3 +1,4 @@
+#include <math.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -8,20 +9,36 @@
 
 static void do_fp(pid_t pid, int sig)
 {
-	static unsigned int cnt;
 	unsigned int i;
-	int a, b;
+	long int a, b;
 	double c, d;
 
+	a = rand() % 1000000;
+	b = rand() % 1000000;
+
 	for (i = 0; i < 10000000; i++) {
-		a = rand() % 1000000;
-		b = rand() % 1000000;
+		a++;
+		b++;
 		c = a;
 		d = b;
-		if (!(++cnt % 10000000) || a + b != (int)(c + d))
-			printf("%u %u %u %6d + %6d = %7d != %7d = %7.0F = %6.0F + %6.0F\n",
-					!(cnt % 10000000), pid, sig,
-					a, b, a + b, (int)(c + d), c + d, c, d);
+		if (!(i % 10000000)) {
+			putchar('0' + pid % 10);
+			fflush(stdout);
+		}
+		if (a + b != (long)(c + d))
+			printf("\n%u %u %u %6ld + %6ld = %7ld != %7ld = %7.0F = %6.0F + %6.0F\n",
+					i, pid, sig,
+					a, b, a + b, (long)(c + d), c + d, c, d);
+		if (a * b != (long)(c * d))
+			printf("\n%u %u %u %6ld * %6ld = %7ld != %7ld = %7.0F = %6.0F * %6.0F\n",
+					i, pid, sig,
+					a, b, a * b, (long)(c * d), c * d, c, d);
+		double rad = (double)(a % 180) / 180 * M_PI / 2;
+		if (abs(asin(sin(rad)) - rad) > 0.00001)
+			printf("\n%u %u %u asin(sin(%3ld = %5.3F)) = %7.2F != %7.2F (sin = %5.2F)\n",
+					i, pid, sig,
+					a % 180,
+					rad, asin(sin(rad)), rad, sin(rad));
 	}
 }
 
