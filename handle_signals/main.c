@@ -49,12 +49,14 @@ static void siga(int sig, siginfo_t *sigi, void *con)
 		regs[REG_RIP] += insn.length;
 		if (sig == 8) {
 			const double con = 1234567890.123456;
+			printf("%lf instead of %lf", con,
+				*(double *)(fpregs->_xmm[modrm_reg].element));
 			*(double *)(fpregs->_xmm[modrm_reg].element) = con;
-			printf("%lf", con);
 		} else {
 			const long con = 123;
+			printf("%ld instead of %lld", con,
+					regs[op_to_reg[modrm_reg]]);
 			regs[op_to_reg[modrm_reg]] = con;
-			printf("%ld", con);
 		}
 		printf(" to reg %d\n", modrm_reg);
 	}
