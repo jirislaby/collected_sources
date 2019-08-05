@@ -31,12 +31,18 @@ static void siga(int sig, siginfo_t *sigi, void *con)
 	greg_t *regs = ucon->uc_mcontext.gregs;
 	struct _libc_fpstate *fpregs = ucon->uc_mcontext.fpregs;
 
-	if (counter++ >= 20) {
+	if (counter++ >= 2000) {
 		puts("recursive signal, cannot recover, it seems!");
-		_exit(0);
+		exit(0);
 	}
 
-	printf("  > %s: signr=%d addr=%p code=%d\n", __func__, sig, sigi->si_addr, sigi->si_code);
+	printf("  > %s: cnt=%d signr=%d addr=%p code=%d RSP=%llx\n", __func__,
+			counter, sig, sigi->si_addr, sigi->si_code,
+			regs[REG_RSP]);
+
+	printf("%lf\n", zero + 2);
+	printf("%d\n", *hell_ptr);
+	return;
 
 	insn_init(&insn, (void *)regs[REG_RIP], 20, 1);
 	insn_get_length(&insn);
@@ -66,7 +72,7 @@ int main()
 {
 	const struct sigaction sigact = {
 		.sa_sigaction = siga,
-		.sa_flags = SA_SIGINFO,
+		.sa_flags = SA_SIGINFO | SA_NODEFER,
 	};
 
 	sigaction(SIGSEGV, &sigact, NULL);
