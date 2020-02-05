@@ -1,5 +1,6 @@
 #include <err.h>
 #include <fcntl.h>
+#include <poll.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -10,6 +11,33 @@
 #include <sys/types.h>
 
 #include "../supp.h"
+
+static void do_io(int fd)
+{
+	struct pollfd pfd[2] = {
+		{ .fd = STDIN_FILENO, .events = POLLIN },
+		{ .fd = fd, .events = POLLIN }
+	};
+	char buf[65535];
+	unsigned int a;
+
+	if (write(fd, "bubak\n", 6) < 0)
+		err(1, "write");
+
+	while (1) {
+		if (poll(pfd, ARRAY_SIZE(pfd), -1) <= 0)
+			err(1, "poll");
+		for (a = 0; a < ARRAY_SIZE(pfd); a++) {
+			if (pfd[a].revents == POLLIN) {
+				ssize_t rd = read(pfd[a].fd, buf, sizeof(buf));
+				if (rd <= 0)
+					return;
+				write(pfd[a].fd == STDIN_FILENO ? fd : STDOUT_FILENO, buf, rd);
+			}
+			pfd[a].revents = 0;
+		}
+	}
+}
 
 static const char * const ldiscs[] = {
 	"TTY",
@@ -45,7 +73,6 @@ static const char * const ldiscs[] = {
 int main(int argc, char *argv[])
 {
 	int fd, ld;
-	char buf[65535];
 
 	printf("sz=%zu as=%zu\n", sizeof(ldiscs), ARRAY_SIZE(ldiscs));
 
@@ -67,14 +94,8 @@ int main(int argc, char *argv[])
 	if (ioctl(fd, TIOCSETD, &ld))
 		err(1, "ioctl");
 
-	if (write(fd, "bubak\n", 6) < 0)
-		err(1, "write");
+	do_io(fd);
 
-	while (1) {
-		ssize_t rd = read(fd, buf, sizeof(buf));
-		if (rd < 0)
-			break;
-	}
 	close(fd);
 
 	return 0;
