@@ -28,7 +28,9 @@ static void do_io(int fd)
 		if (poll(pfd, ARRAY_SIZE(pfd), -1) <= 0)
 			err(1, "poll");
 		for (a = 0; a < ARRAY_SIZE(pfd); a++) {
-			if (pfd[a].revents == POLLIN) {
+			if (pfd[a].revents & (POLLHUP|POLLERR))
+				return;
+			if (pfd[a].revents & POLLIN) {
 				ssize_t rd = read(pfd[a].fd, buf, sizeof(buf));
 				if (rd <= 0)
 					return;
