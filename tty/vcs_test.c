@@ -14,6 +14,8 @@
 
 #include <linux/vt.h>
 
+#define START_LETTER	' '
+
 struct coord {
 	unsigned short x, y;
 };
@@ -73,12 +75,12 @@ static int tty_setup(const char *dev, struct coord *winsz,
 static void test_reads(int tty, int vcs, struct coord *winsz,
 		struct coord *cursor)
 {
-	struct header {
+	struct attr {
 		unsigned char rows, cols, x, y;
-	} header;
-	//char buf[16];
+		char data[];
+	} header, *buf;
 	ssize_t rd;
-	unsigned int off;
+	unsigned int off, data_size, i;
 
 	for (off = 0; off < 4; off++) {
 		if (lseek(vcs, off, SEEK_SET) < 0)
@@ -96,6 +98,62 @@ static void test_reads(int tty, int vcs, struct coord *winsz,
 
 		if (header.x + 1 != cursor->x || header.y + 1 != cursor->y)
 			errx(1 , "cursor doesn't match");
+	}
+
+	data_size = header.cols * header.rows * 2;
+	buf = malloc(sizeof(buf) + data_size);
+
+	if (lseek(vcs, 0, SEEK_SET) < 0)
+		err(1, "seek vcs");
+
+#ifdef PRINT_SCREEN
+	rd = read(vcs, buf, sizeof(buf) + data_size);
+	if (rd < 0)
+		err(1, "read vcs");
+
+	for (i = 0; i < data_size / 2; i++) {
+		printf("%c", buf->data[i * 2]);
+		if (!((i + 1) % header.cols))
+			puts("");
+	}
+	puts("");
+#endif
+
+	for (off = 0; off < 4; off++) {
+		if (lseek(vcs, off, SEEK_SET) < 0)
+			err(1, "seek vcs");
+
+		rd = read(vcs, buf + off, sizeof(buf) + data_size - off);
+		if (rd < 0)
+			err(1, "read vcs");
+
+		for (i = 0; i < data_size / 2; i++) {
+			unsigned int col = i % winsz->x;
+			unsigned int row = i / winsz->x;
+			if (col == 0 && buf->data[i * 2] != START_LETTER + row)
+				printf("invalid data at %u [%u, %u]: %c (expected %c)\n",
+						i, col, row, buf->data[i * 2],
+						START_LETTER + row);
+		}
+	}
+
+
+	free(buf);
+}
+
+static void fill_screen(int tty, struct coord *winsz)
+{
+	struct coord cursor = { 1, 1 };
+	unsigned short x;
+
+	write(tty, "\e[2J", 4);
+
+	for (; cursor.y <= winsz->y; cursor.y++) {
+		unsigned short c = START_LETTER + cursor.y - 1;
+
+		goto_xy(tty, &cursor);
+		for (x = 0; x < 48; x++, c++)
+			write(tty, &c, 1);
 	}
 }
 
@@ -115,11 +173,7 @@ int main(int argc, char **argv)
 	printf("Window: %ux%u\n", winsz.x, winsz.y);
 	printf("Cursor: [%u, %u]\n", cursor.x, cursor.y);
 
-	cursor.x = 10;
-	cursor.y = 20;
-
-	goto_xy(tty, &cursor);
-	write(tty, "aho\r\n", 5);
+	fill_screen(tty, &winsz);
 
 	get_cursor(tty, &cursor);
 	printf("Cursor: [%u, %u]\n", cursor.x, cursor.y);
