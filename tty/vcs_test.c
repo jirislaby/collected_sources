@@ -1,7 +1,9 @@
+#include <ctype.h>
 #include <err.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <limits.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -14,6 +16,8 @@
 
 #include <linux/vt.h>
 
+#define POISON		128
+#define POISON_FUN(x)	(0xe0 | ((x) & 0xf))
 #define START_LETTER	' '
 
 struct coord {
@@ -72,6 +76,40 @@ static int tty_setup(const char *dev, struct coord *winsz,
 	return tty;
 }
 
+static void hex_dump(const void *_buf, unsigned int len, unsigned short cols)
+{
+	const char *buf = _buf;
+	unsigned int i;
+
+	for (i = 0; i < len; i++) {
+		unsigned char c = buf[i];
+		printf("\e[100m");
+		putchar(isprint(c) && !isspace(c) ? c : ' ');
+		printf("\e[0m");
+		printf("%.2x", c);
+		if (!((i + 1) % cols))
+			puts("");
+	}
+
+	puts("");
+}
+
+static void check_poison(const char *info, const char *poison)
+{
+	unsigned int i;
+
+	for (i = 0; i < 4; i++) {
+		unsigned char data = poison[i];
+		unsigned char exp = POISON_FUN(i);
+
+		if (data != exp) {
+			printf("bad poison (%s): %.2x != %.2x at %u\n", info, data, exp, i);
+			hex_dump(poison, POISON, 16);
+			break;
+		}
+	}
+}
+
 static void test_reads(int tty, int vcs, struct coord *winsz,
 		struct coord *cursor)
 {
@@ -79,6 +117,7 @@ static void test_reads(int tty, int vcs, struct coord *winsz,
 		unsigned char rows, cols, x, y;
 		char data[];
 	} header, *buf;
+	char *alloc;
 	ssize_t rd;
 	unsigned int off, data_size, i;
 
@@ -101,7 +140,14 @@ static void test_reads(int tty, int vcs, struct coord *winsz,
 	}
 
 	data_size = header.cols * header.rows * 2;
-	buf = malloc(sizeof(buf) + data_size);
+	alloc = malloc(sizeof(buf) + data_size + 2 * POISON);
+
+	for (i = 0; i < POISON; i++)
+		alloc[i] = POISON_FUN(i);
+	buf = (void *)alloc + POISON;
+	for (i = 0; i < POISON; i++)
+		buf->data[data_size + i] = POISON_FUN(i);
+
 
 	if (lseek(vcs, 0, SEEK_SET) < 0)
 		err(1, "seek vcs");
@@ -120,9 +166,12 @@ static void test_reads(int tty, int vcs, struct coord *winsz,
 #endif
 
 	for (off = 0; off < 4; off++) {
+		bool invalid = false;
+
 		if (lseek(vcs, off, SEEK_SET) < 0)
 			err(1, "seek vcs");
 
+		memset(buf, 0, off);
 		rd = read(vcs, buf + off, sizeof(buf) + data_size - off);
 		if (rd < 0)
 			err(1, "read vcs");
@@ -130,15 +179,26 @@ static void test_reads(int tty, int vcs, struct coord *winsz,
 		for (i = 0; i < data_size / 2; i++) {
 			unsigned int col = i % winsz->x;
 			unsigned int row = i / winsz->x;
-			if (col == 0 && buf->data[i * 2] != START_LETTER + row)
-				printf("invalid data at %u [%u, %u]: %c (expected %c)\n",
-						i, col, row, buf->data[i * 2],
-						START_LETTER + row);
+			char data = buf->data[i * 2];
+
+			if (col == 0 && data != START_LETTER + row) {
+				printf("invalid data at %5u [%3u, %3u] (off=%u): ", i, col, row, off);
+				putchar(isprint(data) ? data : ' ');
+				putchar(' ');
+				printf(" %.2x (expected %c)\n", (unsigned char)data, START_LETTER + row);
+				invalid = true;
+			}
+		}
+		if (invalid) {
+			hex_dump(buf, sizeof(buf) + data_size, header.cols / 2);
+			break;
 		}
 	}
 
+	check_poison("start", alloc);
+	check_poison("end", &buf->data[data_size]);
 
-	free(buf);
+	free(alloc);
 }
 
 static void fill_screen(int tty, struct coord *winsz)
