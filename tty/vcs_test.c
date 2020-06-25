@@ -172,7 +172,7 @@ static void test_reads(int tty, int vcs, struct coord *winsz,
 			err(1, "seek vcs");
 
 		memset(buf, 0, off);
-		rd = read(vcs, buf + off, sizeof(buf) + data_size - off);
+		rd = read(vcs, (void *)buf + off, sizeof(buf) + data_size - off);
 		if (rd < 0)
 			err(1, "read vcs");
 
