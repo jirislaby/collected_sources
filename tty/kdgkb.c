@@ -68,11 +68,34 @@ static void set(int fd)
 	}
 }
 
+static void alter(int fd)
+{
+	struct kbsentry kbs = {
+		.kb_func = 0,
+		.kb_string = "XXXXXXXXXXXXXXXXXXX\n",
+	};
+	unsigned a;
+
+	if (ioctl(fd, KDSKBSENT, &kbs) < 0)
+		err(1, "ioctl(KDSKBSENT) initial");
+
+	while (1) {
+		for (a = 0; a < 2; a++) {
+			strcpy((char *)kbs.kb_string, a ? ".\n" : "88888888888888888888\n");
+			if (ioctl(fd, KDSKBSENT, &kbs) < 0)
+				err(1, "ioctl(KDSKBSENT) [%u]", a);
+		}
+
+	}
+}
+
 int main(int argc, char **argv)
 {
 	int fd = open(argv[1] ? : "/dev/tty", O_RDWR);
 	if (fd < 0)
 		err(1, "open");
+
+	alter(fd);
 
 	get(fd);
 	set(fd);
