@@ -60,8 +60,8 @@ static void set(int fd)
 		char *from = func[i];
 		if (!strlen(from))
 			from = "AHOJ";
-		strcpy((char *)kbs.kb_string, from);
-		strcat((char *)kbs.kb_string, from);
+		snprintf((char *)kbs.kb_string, sizeof(kbs.kb_string), "%s%s", from, from);
+		kbs.kb_string[sizeof(kbs.kb_string) - 1] = 0;
 
 		if (ioctl(fd, KDSKBSENT, &kbs) < 0)
 			err(1, "ioctl(KDSKBSENT) [%u]", i);
