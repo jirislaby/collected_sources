@@ -74,10 +74,20 @@ static void alter(int fd)
 		.kb_func = 0,
 		.kb_string = "XXXXXXXXXXXXXXXXXXX\n",
 	};
+	char buf[64];
 	unsigned a;
+	int fl;
 
 	if (ioctl(fd, KDSKBSENT, &kbs) < 0)
 		err(1, "ioctl(KDSKBSENT) initial");
+
+	fl = fcntl(0, F_GETFL);
+	if (fl < 0)
+		err(1, "fcntl(F_GETFL)");
+	printf("stdin flags=%x -> %x\n", fl, fl | O_NONBLOCK);
+	fl |= O_NONBLOCK;
+	if (fcntl(0, F_SETFL, fl) < 0)
+		err(1, "fcntl(F_SETFL)");
 
 	while (1) {
 		for (a = 0; a < 2; a++) {
@@ -85,6 +95,9 @@ static void alter(int fd)
 			if (ioctl(fd, KDSKBSENT, &kbs) < 0)
 				err(1, "ioctl(KDSKBSENT) [%u]", a);
 		}
+		ssize_t rd = read(0, buf, sizeof(buf));
+		if (rd < 0 && errno != EAGAIN)
+			err(1, "read");
 
 	}
 }
