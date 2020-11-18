@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/bash
 
 touch AUTHORS COPYING ChangeLog INSTALL NEWS README || exit 1
 aclocal || exit 1

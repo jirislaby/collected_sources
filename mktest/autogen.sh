@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/sh
 
 echo aclocal
 aclocal
