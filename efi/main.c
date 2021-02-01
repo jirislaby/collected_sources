@@ -15,9 +15,14 @@ static EFI_STATUS get_keystroke(EFI_INPUT_KEY *key)
 	return efi_status;
 }
 
-static void msleep(unsigned int ms)
+static void usleep(UINTN us)
 {
-	gBS->Stall(1000 * (UINTN)ms);
+	gBS->Stall(us);
+}
+
+static void msleep(UINTN ms)
+{
+	usleep(ms * 1000);
 }
 
 EFI_STATUS efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *systab)
@@ -44,5 +49,5 @@ EFI_STATUS efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *systab)
 
 	msleep(3000);
 
-	return EFI_SUCCESS;
+	return gRT->ResetSystem(EfiResetShutdown, EFI_SUCCESS, 0, NULL);
 }
