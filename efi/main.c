@@ -25,6 +25,29 @@ static void msleep(UINTN ms)
 	usleep(ms * 1000);
 }
 
+static void dump_vars()
+{
+	CHAR16 var[64] = L"";
+	EFI_GUID guid;
+	unsigned counter = 0;
+
+	while (1) {
+		UINTN size = sizeof(var);
+		EFI_STATUS ret = gRT->GetNextVariableName(&size, var, &guid);
+		if (ret) {
+			if (ret != EFI_NOT_FOUND)
+				Print(L"Error: %r\n", ret);
+			break;
+		}
+		Print(L"VAR: %.25s GUID: %g\n", var, &guid);
+		if (!(++counter % 20)) {
+			EFI_INPUT_KEY k;
+			get_keystroke(&k);
+		}
+
+	}
+}
+
 EFI_STATUS efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *systab)
 {
 	CHAR16 buf[64];
@@ -40,6 +63,8 @@ EFI_STATUS efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *systab)
 	Print(L"Hello, world!\n");
 	Input(L"Input something: ", buf, sizeof(buf));
 	Print(L"\nYou wrote: %s\n", buf);
+	if (!StrCmp(buf, L"vars"))
+		dump_vars();
 
 	do {
 		Print(L"Press a key (ESC to exit)...\n");
