@@ -4,7 +4,7 @@ TARGETS=algif af_unix cond_wait check_mem fadvise fcntl fork_leak \
 	fp1 gai ipv6 malloc_pages \
 	mmap msgrcv open_loop personality \
 	pgid_sid poll_sel pps pthread_once remote_tuner recv_udp \
-	root sig snd tun usb_killer vhci
+	root seq_write sig snd tun usb_killer vhci
 
 fp1: CFLAGS=-Wall -O0 -ggdb
 fp1: LDFLAGS=-lm
