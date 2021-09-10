@@ -25,7 +25,7 @@ static void do_work(const char *tty)
 
 	pid = getpid();
 
-	con = open("/tmp/aaa", O_WRONLY|O_NOCTTY|O_CREAT|O_APPEND);
+	con = open("/tmp/aaa", O_WRONLY|O_NOCTTY|O_CREAT|O_APPEND, 0644);
 	if (con < 0)
 		err(2, "open cons");
 
