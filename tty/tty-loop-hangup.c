@@ -77,6 +77,7 @@ int main(int argc, char **argv)
 	default:
 	{
 		signal(SIGINT, sig);
+		signal(SIGTERM, sig);
 
 		int stat;
 		waitpid(child, &stat, 0);
