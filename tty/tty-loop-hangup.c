@@ -1,4 +1,5 @@
 #include <err.h>
+#include <errno.h>
 #include <fcntl.h>
 #include <signal.h>
 #include <stdio.h>
@@ -42,8 +43,13 @@ static void do_work(const char *tty)
 		}
 		if (ioctl(fd, TIOCSCTTY, 1))
 			errc |= 2;
-		else if (vhangup())
+		else if (vhangup()) {
 			errc |= 4;
+			if (errno == EPERM) {
+				warn("vhangup");
+				break;
+			}
+		}
 		close(fd);
 		usleep(200 * (10 + random() % 50));
 	}
