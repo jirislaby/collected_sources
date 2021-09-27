@@ -100,15 +100,32 @@ int main(int argc, char **argv)
 		}
 		if (do_write) {
 			size_t write_len2 = write_len;
+			size_t written;
+
 			if (do_counter)
 				write_len2 += sprintf(do_write + write_len, "%u\n", ++counter);
-			if (write(fd, do_write, write_len2) != write_len2 && !silent)
-				write(1, "W", 1);
+			written = write(fd, do_write, write_len2);
+			if (written != write_len2) {
+				if (errno == EIO) {
+					close(fd);
+					fd = -1;
+					continue;
+				}
+				if (!silent)
+					write(1, "W", 1);
+			}
 		}
 		if (do_read) {
 			rd = read(fd, buf, sizeof(buf));
-			if (rd < 0 && !silent)
-				write(1, "R", 1);
+			if (rd < 0) {
+				if (errno == EIO) {
+					close(fd);
+					fd = -1;
+					continue;
+				}
+				if (!silent)
+					write(1, "R", 1);
+			}
 			if (!noecho && rd > 0)
 				write(1, buf, rd);
 		}
