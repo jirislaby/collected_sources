@@ -17,6 +17,7 @@ int main(int argc, char **argv)
 	static const struct option opts[] = {
 		{ "counter", 0, NULL, 'c' },
 		{ "noecho", 0, NULL, 'n' },
+		{ "openonce", 0, NULL, 'o' },
 		{ "read", 0, NULL, 'r' },
 		{ "silent", 0, NULL, 's' },
 		{ "sleep", 1, NULL, 'l' },
@@ -24,14 +25,14 @@ int main(int argc, char **argv)
 		{ }
 	};
 	size_t rd;
-	int fd, opt;
+	int fd = -1, opt;
 	char buf[64];
-	bool do_counter = false, noecho = false, do_read = false, silent = false;
+	bool do_counter = false, noecho = false, open_once = false, do_read = false, silent = false;
 	char *do_write = NULL;
 	size_t write_len = 0;
 	unsigned int counter = 0, sleep = 0;
 
-	while ((opt = getopt_long(argc, argv, "cnl:rsw::", opts, NULL)) >= 0) {
+	while ((opt = getopt_long(argc, argv, "cnl:orsw::", opts, NULL)) >= 0) {
 		switch (opt) {
 		case '?':
 			errx(1, "bad option");
@@ -43,6 +44,9 @@ int main(int argc, char **argv)
 			break;
 		case 'l':
 			sleep = atoi(optarg);
+			break;
+		case 'o':
+			open_once = true;
 			break;
 		case 'r':
 			do_read = true;
@@ -72,7 +76,7 @@ int main(int argc, char **argv)
 	}
 
 	if (!silent) {
-		printf("Going to ");
+		printf("Going to open %s ", open_once ? "once" : "repeatedly");
 		if (do_read)
 			printf("READ ");
 		if (do_write)
@@ -85,12 +89,14 @@ int main(int argc, char **argv)
 	}
 
 	while (1) {
-		fd = open(argv[optind], O_RDWR);
-		if (fd < 0) {
-			warn_on_EPERM("open");
-			if (!silent)
-				write(1, "O", 1);
-			continue;
+		if (fd < 0 || !open_once) {
+			fd = open(argv[optind], O_RDWR);
+			if (fd < 0) {
+				warn_on_EPERM("open");
+				if (!silent)
+					write(1, "O", 1);
+				continue;
+			}
 		}
 		if (do_write) {
 			size_t write_len2 = write_len;
@@ -107,7 +113,8 @@ int main(int argc, char **argv)
 				write(1, buf, rd);
 		}
 
-		close(fd);
+		if (!open_once)
+			close(fd);
 
 		if (!silent)
 			write(1, "y", 1);
