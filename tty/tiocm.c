@@ -68,7 +68,7 @@ int main(int argc, char **argv)
 
 	while ((o = getopt_long(argc, argv, "s:", opts, &o_idx)) >= 0) {
 		switch (o) {
-		case 0:
+		case 0: {
 			const char *name = opts[o_idx].name;
 			const char last = name[strlen(name) - 1];
 
@@ -79,6 +79,7 @@ int main(int argc, char **argv)
 			else
 				alter |= opts[o_idx].val;
 			break;
+		}
 		case 's':
 			sleep = atoi(optarg);
 			break;
