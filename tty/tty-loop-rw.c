@@ -122,6 +122,8 @@ int main(int argc, char **argv)
 				if (errno == EIO) {
 					close(fd);
 					fd = -1;
+					if (!silent)
+						write(1, "w", 1);
 					continue;
 				}
 				if (!silent)
@@ -134,6 +136,8 @@ int main(int argc, char **argv)
 				if (errno == EIO) {
 					close(fd);
 					fd = -1;
+					if (!silent)
+						write(1, "r", 1);
 					continue;
 				}
 				if (!silent)
