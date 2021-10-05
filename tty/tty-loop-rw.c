@@ -25,6 +25,7 @@ int main(int argc, char **argv)
 	static const struct option opts[] = {
 		{ "counter", 0, NULL, 'c' },
 		{ "noecho", 0, NULL, 'n' },
+		{ "nosignal", 0, NULL, 1 },
 		{ "openonce", 0, NULL, 'o' },
 		{ "read", 0, NULL, 'r' },
 		{ "silent", 0, NULL, 's' },
@@ -35,7 +36,8 @@ int main(int argc, char **argv)
 	size_t rd;
 	int fd = -1, opt;
 	char buf[64];
-	bool do_counter = false, noecho = false, open_once = false, do_read = false, silent = false;
+	bool do_counter = false, noecho = false, nosignal = false;
+	bool open_once = false, do_read = false, silent = false;
 	char *do_write = NULL;
 	size_t write_len = 0;
 	unsigned int counter = 0, sleep = 0;
@@ -44,6 +46,9 @@ int main(int argc, char **argv)
 		switch (opt) {
 		case '?':
 			errx(1, "bad option");
+		case 1:
+			nosignal = true;
+			break;
 		case 'c':
 			do_counter = true;
 			break;
@@ -83,10 +88,12 @@ int main(int argc, char **argv)
 		do_write = realloc(do_write, write_len + 8 + 1 + 1);
 	}
 
-	if (signal(SIGTERM, sig))
-		err(1, "signal(SIGTERM)");
-	if (signal(SIGINT, sig))
-		err(1, "signal(SIGINT)");
+	if (!nosignal) {
+		if (signal(SIGTERM, sig))
+			err(1, "signal(SIGTERM)");
+		if (signal(SIGINT, sig))
+			err(1, "signal(SIGINT)");
+	}
 
 	if (!silent) {
 		printf("Going to open %s ", open_once ? "once" : "repeatedly");
@@ -160,7 +167,7 @@ int main(int argc, char **argv)
 
 
 	if (!silent)
-		puts("\nClosing");
+		printf("\nClosing (counter=%u)\n", counter);
 
 	if (open_once)
 		close(fd);
