@@ -1,6 +1,7 @@
 #include <err.h>
 #include <fcntl.h>
 #include <getopt.h>
+#include <signal.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,6 +12,13 @@
 #include <sys/types.h>
 
 #include "tty.h"
+
+static volatile sig_atomic_t stop;
+
+static void sig(int s)
+{
+	stop = true;
+}
 
 int main(int argc, char **argv)
 {
@@ -75,6 +83,11 @@ int main(int argc, char **argv)
 		do_write = realloc(do_write, write_len + 8 + 1 + 1);
 	}
 
+	if (signal(SIGTERM, sig))
+		err(1, "signal(SIGTERM)");
+	if (signal(SIGINT, sig))
+		err(1, "signal(SIGINT)");
+
 	if (!silent) {
 		printf("Going to open %s ", open_once ? "once" : "repeatedly");
 		if (do_read)
@@ -135,9 +148,18 @@ int main(int argc, char **argv)
 
 		if (!silent)
 			write(1, "y", 1);
+		if (stop)
+			break;
 		if (sleep)
 			usleep(sleep * 1000);
 	}
+
+
+	if (!silent)
+		puts("\nClosing");
+
+	if (open_once)
+		close(fd);
 
 	if (do_counter)
 		free(do_write);
