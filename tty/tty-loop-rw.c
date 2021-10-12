@@ -133,8 +133,10 @@ int main(int argc, char **argv)
 						write(1, "w", 1);
 					continue;
 				}
-				if (!silent)
+				if (!silent) {
+					printf("\nW(%zu != %zu)\n", written, write_len2);
 					write(1, "W", 1);
+				}
 			}
 		}
 		if (do_read) {
