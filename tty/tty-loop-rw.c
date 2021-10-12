@@ -1,6 +1,7 @@
 #include <err.h>
 #include <fcntl.h>
 #include <getopt.h>
+#include <poll.h>
 #include <signal.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -109,6 +110,9 @@ int main(int argc, char **argv)
 	}
 
 	while (1) {
+		struct pollfd pfd = {
+			.events = POLLERR,
+		};
 		if (fd < 0 || !open_once) {
 			fd = open(argv[optind], O_RDWR);
 			if (fd < 0) {
@@ -118,7 +122,14 @@ int main(int argc, char **argv)
 				continue;
 			}
 		}
-		if (do_write) {
+		if (do_write)
+			pfd.events |= POLLOUT;
+		if (do_read)
+			pfd.events |= POLLIN;
+		pfd.fd = fd;
+		if (poll(&pfd, 1, -1) < 0 || pfd.revents & POLLERR)
+			putchar('P');
+		if (pfd.revents & POLLOUT) {
 			size_t write_len2 = write_len;
 			size_t written;
 
@@ -139,7 +150,7 @@ int main(int argc, char **argv)
 				}
 			}
 		}
-		if (do_read) {
+		if (pfd.revents & POLLIN) {
 			rd = read(fd, buf, sizeof(buf));
 			if (rd < 0) {
 				if (errno == EIO) {
