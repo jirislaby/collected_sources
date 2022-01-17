@@ -11,7 +11,7 @@
 #include <sys/types.h>
 
 #include <ncurses.h>
-#include <asoundlib.h>
+#include <alsa/asoundlib.h>
 #include <sndfile.h>
 
 #include <complex.h>
