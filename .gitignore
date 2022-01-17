@@ -21,6 +21,13 @@ depcomp
 install-sh
 missing
 
+.ninja_deps
+.ninja_log
+CMakeCache.txt
+CMakeFiles/
+build.ninja
+cmake_install.cmake
+
 /evtest
 
 /algif
