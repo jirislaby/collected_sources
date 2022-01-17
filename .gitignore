@@ -1,8 +1,12 @@
+*.d
 *.ko
 *.o
+*.so
 *~
 *.mod.c
+*.efi
 .*.cmd
+.*.swp
 .deps/
 .tmp_versions/
 
