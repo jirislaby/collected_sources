@@ -16,5 +16,6 @@ tty-loop-open
 tty-loop-rw
 tty-loop-tiocsctty
 tty-loop-tiocsetd
+tty_name
 tty_printk
 vcs_test
