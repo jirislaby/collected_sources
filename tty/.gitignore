@@ -18,4 +18,5 @@ tty-loop-tiocsctty
 tty-loop-tiocsetd
 tty_name
 tty_printk
+tty_unimap
 vcs_test
