@@ -5,6 +5,7 @@ ld1
 ld2
 n_gsm
 pty
+pty_multiwrite
 serial
 tiocm
 tiocsetd
