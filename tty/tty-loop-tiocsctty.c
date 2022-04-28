@@ -32,7 +32,7 @@ static void do_work(const char *tty)
 	exit(0);
 }
 
-int main(int argc, char **argv)
+int main(int /*argc*/, char **argv)
 {
 	pid_t pid;
 

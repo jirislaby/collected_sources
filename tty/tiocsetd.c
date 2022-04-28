@@ -81,7 +81,7 @@ int main(int argc, char *argv[])
 	if (argc < 3)
 		return 1;
 
-	for (ld = 0; ld < ARRAY_SIZE(ldiscs); ld++)
+	for (ld = 0; (unsigned)ld < ARRAY_SIZE(ldiscs); ld++)
 		if (!strcmp(ldiscs[ld], argv[2]))
 			break;
 

@@ -32,7 +32,7 @@ static struct {
 
 static void dump_tiocm(int tio)
 {
-	int a;
+	unsigned int a;
 
 	printf("TIOCM: %.8x\n", tio);
 	for (a = 0; a < sizeof(names)/sizeof(*names); a++)

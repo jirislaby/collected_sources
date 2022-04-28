@@ -10,7 +10,7 @@
 
 #include "../util.h"
 
-int main(int argc, char *argv[])
+int main(int /*argc*/, char *argv[])
 {
 	int fd, ld1, ld2;
 

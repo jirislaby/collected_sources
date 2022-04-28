@@ -14,7 +14,7 @@
 
 #define DEFAULT_SPEED	B115200
 
-int main(int argc, char **argv)
+int main(int /*argc*/, char **argv)
 {
 	struct gsm_config c;
 	int ldisc = N_GSM0710;

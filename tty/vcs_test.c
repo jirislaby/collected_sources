@@ -110,8 +110,7 @@ static void check_poison(const char *info, const char *poison)
 	}
 }
 
-static void test_reads(int tty, int vcs, struct coord *winsz,
-		struct coord *cursor)
+static void test_reads(int vcs, struct coord *winsz, struct coord *cursor)
 {
 	struct attr {
 		unsigned char rows, cols, x, y;
@@ -181,7 +180,7 @@ static void test_reads(int tty, int vcs, struct coord *winsz,
 			unsigned int row = i / winsz->x;
 			char data = buf->data[i * 2];
 
-			if (col == 0 && data != START_LETTER + row) {
+			if (col == 0 && data != START_LETTER + (char)row) {
 				printf("invalid data at %5u [%3u, %3u] (off=%u): ", i, col, row, off);
 				putchar(isprint(data) ? data : ' ');
 				putchar(' ');
@@ -243,7 +242,7 @@ int main(int argc, char **argv)
 	if (vcs < 0)
 		err(1, "open %s", dev);
 
-	test_reads(tty, vcs, &winsz, &cursor);
+	test_reads(vcs, &winsz, &cursor);
 
 	close(vcs);
 

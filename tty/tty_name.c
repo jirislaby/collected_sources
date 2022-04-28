@@ -6,7 +6,7 @@
 #include <string.h>
 #include <unistd.h>
 
-int main(int argc, char **argv)
+int main()
 {
 	int fd = open("/dev/tty0", O_RDONLY);
 	char *name;

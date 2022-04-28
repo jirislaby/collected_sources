@@ -49,7 +49,7 @@ static void do_work(const char *tty)
 	loop(tty);
 }
 
-int main(int argc, char **argv)
+int main(int /*argc*/, char **argv)
 {
 	pid_t pid;
 

@@ -77,7 +77,7 @@ static void setup_serial(const char *tty)
 
 static const unsigned char FORKS = 3;
 
-int main(int argc, char **argv)
+int main(int /*argc*/, char **argv)
 {
 	unsigned int a;
 

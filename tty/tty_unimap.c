@@ -188,7 +188,7 @@ static void do_one_proc()
 		pthread_join(threads[t], NULL);
 }
 
-int main(int argc, char **argv)
+int main()
 {
 	unsigned int proc;
 

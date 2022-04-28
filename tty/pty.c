@@ -45,7 +45,7 @@ void fork_send(int ptmx, int fd)
 	send(ptmx, fd);
 }
 
-int main(int argc, char **argv)
+int main()
 {
 	char path[PATH_MAX];
 	int fd, ptmx, rnd;

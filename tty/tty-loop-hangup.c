@@ -65,7 +65,7 @@ static void sig(int s)
 	printf("killed %d\n", child);
 }
 
-int main(int argc, char **argv)
+int main(int /*argc*/, char **argv)
 {
 	switch (child = fork()) {
 	case 0:

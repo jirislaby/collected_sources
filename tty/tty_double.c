@@ -35,7 +35,7 @@ static void work(const char *tty, char *text, unsigned int len)
 	}
 }
 
-int main(int argc, char **argv)
+int main(int /*argc*/, char **argv)
 {
 	switch (fork()) {
 	case -1:

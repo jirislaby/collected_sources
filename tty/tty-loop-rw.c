@@ -16,7 +16,7 @@
 
 static volatile sig_atomic_t stop;
 
-static void sig(int s)
+static void sig(int)
 {
 	stop = true;
 }
@@ -34,7 +34,7 @@ int main(int argc, char **argv)
 		{ "write", 2, NULL, 'w' },
 		{ }
 	};
-	size_t rd;
+	ssize_t rd;
 	int fd = -1, opt;
 	char buf[64];
 	bool do_counter = false, noecho = false, nosignal = false;

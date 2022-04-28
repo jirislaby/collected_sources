@@ -102,7 +102,7 @@ static void alter(int fd)
 	}
 }
 
-int main(int argc, char **argv)
+int main(int /*argc*/, char **argv)
 {
 	int fd = open(argv[1] ? : "/dev/tty", O_RDWR);
 	if (fd < 0)
