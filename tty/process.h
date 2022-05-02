@@ -5,6 +5,7 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #include <unistd.h>
 
 #include <sys/time.h>
@@ -29,13 +30,16 @@ struct th_arg {
 	unsigned int loops;
 };
 
+#define PRINT_INTERVAL 3
+
 static inline void *__one_thread(void *arg)
 {
 	struct th_arg *th_arg = arg;
 	unsigned int loop;
 	callback cb = th_arg->hooks->thread;
 	pid_t pid = getpid();
-	unsigned int add_delay = th_arg->hooks->add_delay;
+	unsigned int delay = 0, add_delay = th_arg->hooks->add_delay;
+	time_t now, timestamp = 0;
 
 	printf("CHILD %5u-%.3u: calling %p %16u times\n", pid,
 			th_arg->thread, cb, th_arg->loops);
@@ -47,16 +51,18 @@ static inline void *__one_thread(void *arg)
 		th_arg->hooks->pre_loop(th_arg->arg);
 
 	for (loop = 0; loop < th_arg->loops; loop++) {
-		if (!(loop % 100000))
+		now = time(NULL);
+		if (now - timestamp >= PRINT_INTERVAL) {
+			timestamp = now;
 			printf("CHILD %5u-%.3u: loop %8u %p\n", pid,
 					th_arg->thread, loop, cb);
+			if (add_delay)
+				delay = rand() % add_delay;
+		}
 		cb(th_arg->arg);
 
-		if (add_delay) {
-			unsigned int delay = rand() % add_delay;
-			if (delay > 500)
-				usleep(delay);
-		}
+		if (delay > 500)
+			usleep(delay);
 	}
 
 	if (th_arg->hooks->post_loop)
