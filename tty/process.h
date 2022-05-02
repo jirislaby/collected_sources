@@ -17,6 +17,9 @@ struct th_hooks {
 	callback threads_created;
 	callback threads_done;
 	callback thread;
+	callback pre_loop;
+	callback post_loop;
+	unsigned int add_delay;
 };
 
 struct th_arg {
@@ -32,16 +35,32 @@ static inline void *__one_thread(void *arg)
 	unsigned int loop;
 	callback cb = th_arg->hooks->thread;
 	pid_t pid = getpid();
+	unsigned int add_delay = th_arg->hooks->add_delay;
 
 	printf("CHILD %5u-%.3u: calling %p %16u times\n", pid,
 			th_arg->thread, cb, th_arg->loops);
+
+	if (add_delay)
+		srand(pid + 1000 * th_arg->thread);
+
+	if (th_arg->hooks->pre_loop)
+		th_arg->hooks->pre_loop(th_arg->arg);
 
 	for (loop = 0; loop < th_arg->loops; loop++) {
 		if (!(loop % 100000))
 			printf("CHILD %5u-%.3u: loop %8u %p\n", pid,
 					th_arg->thread, loop, cb);
 		cb(th_arg->arg);
+
+		if (add_delay) {
+			unsigned int delay = rand() % add_delay;
+			if (delay > 500)
+				usleep(delay);
+		}
 	}
+
+	if (th_arg->hooks->post_loop)
+		th_arg->hooks->post_loop(th_arg->arg);
 
 	return NULL;
 }

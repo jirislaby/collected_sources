@@ -13,12 +13,11 @@
 #include <linux/kd.h>
 #include <linux/vt.h>
 
-#define LOOPS 1000
-#define PROCS 8
-#define THREADS 16
+#include "process.h"
 
-static void do_unimap(const char *node)
+static void do_unimap(void *)
 {
+	static const char node[] = "/dev/tty34";
 #define COUNT 7936
 	static struct unipair entries[COUNT] = {
 { 0xb1cd, 0xf804 }, { 0x86fd, 0x8e54 }, { 0xc6d2, 0x5d64 }, { 0xe149, 0x6ec1 },
@@ -102,11 +101,12 @@ static void do_unimap(const char *node)
 	close(fd);
 }
 
-static void do_disallocate(const char *node)
+static void do_disallocate(void *)
 {
+	static const char node[] = "/dev/tty33";
 	int fd = open(node, O_RDWR);
 	if (fd < 0)
-		err(1, "open(PIO_UNIMAP)");
+		err(1, "open(VT_DISALLOCATE)");
 
 	if (ioctl(fd, VT_DISALLOCATE, 0) < 0)
 		err(1, "ioctl(VT_DISALLOCATE)");
@@ -116,7 +116,7 @@ static void do_disallocate(const char *node)
 
 static void clear_kmemleak()
 {
-#if 0
+#ifdef CLEAR_KMEMLEAK
 	int fd = open("/sys/kernel/debug/kmemleak", O_RDWR);
 	if (fd < 0)
 		err(1, "open(kmemleak)");
@@ -151,61 +151,32 @@ static void dump_kmemleak()
 	close(fd);
 }
 
-static void *do_one_thread(void *arg)
-{
-	static const char node1[] = "/dev/tty34";
-	static const char node2[] = "/dev/tty33";
-	unsigned int t_no = (unsigned long)arg;
-	unsigned int loop, delay;
-	void (*work)(const char *) = (t_no % 2) ? do_unimap : do_disallocate;
-	const char *work_data = (t_no % 2) ? node1 : node2;
-	pid_t pid = getpid();
+#define PROCS 4
+#define THREADS 16
+#define LOOPS 1000
 
-	srand(pid + 1000 * t_no);
+static const struct th_hooks unimap_hooks = {
+	.thread = do_unimap,
+	.add_delay = 10000,
+};
 
-	for (loop = 0; loop < LOOPS; loop++) {
-		if (!(loop % 100))
-			printf("%u-%u: loop %u\n", pid, t_no, loop);
-		delay = rand() % 10000;
-		if (delay > 500)
-			usleep(delay);
-
-		work(work_data);
-	}
-
-	return NULL;
-}
-
-static void do_one_proc()
-{
-	pthread_t threads[THREADS];
-	unsigned int t;
-
-	for (t = 0; t < THREADS; t++)
-		pthread_create(&threads[t], NULL, do_one_thread, (void *)(unsigned long)t);
-
-	for (t = 0; t < THREADS; t++)
-		pthread_join(threads[t], NULL);
-}
+static const struct th_hooks disalloc_hooks = {
+	.thread = do_disallocate,
+	.add_delay = 10000,
+};
 
 int main()
 {
-	unsigned int proc;
+	unsigned int procs;
 
 	clear_kmemleak();
 
-	for (proc = 0; proc < PROCS; proc++) {
-		if (fork())
-			continue;
+	procs = run_parallel(PROCS, THREADS, LOOPS, &unimap_hooks, NULL);
+	procs += run_parallel(PROCS, THREADS, LOOPS, &disalloc_hooks, NULL);
 
-		do_one_proc();
-		exit(0);
-	}
+	puts("PARENT: waiting");
 
-	puts("waiting");
-
-	for (proc = 0; proc < PROCS; proc++)
-		wait(NULL);
+	wait_for_parallel(procs);
 
 	dump_kmemleak();
 
