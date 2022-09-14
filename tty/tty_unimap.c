@@ -1,3 +1,5 @@
+#define _GNU_SOURCE
+
 #include <err.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -17,7 +19,6 @@
 
 static void do_unimap(void *)
 {
-	static const char node[] = "/dev/tty34";
 #define COUNT 7936
 	static struct unipair entries[COUNT] = {
 { 0xb1cd, 0xf804 }, { 0x86fd, 0x8e54 }, { 0xc6d2, 0x5d64 }, { 0xe149, 0x6ec1 },
@@ -90,6 +91,8 @@ static void do_unimap(void *)
 		.entry_ct = COUNT,
 		.entries = entries,
 	};
+	char node[64];
+	sprintf(node, "/dev/tty%d", 0x15 + 2 * (gettid() % 8));
 
 	int fd = open(node, O_RDWR);
 	if (fd < 0)
@@ -103,8 +106,12 @@ static void do_unimap(void *)
 
 static void do_disallocate(void *)
 {
-	static const char node[] = "/dev/tty33";
-	int fd = open(node, O_RDWR);
+	char node[64];
+	int fd;
+
+	sprintf(node, "/dev/tty%d", 0x14 + 2 * (gettid() % 8));
+
+	fd = open(node, O_RDWR);
 	if (fd < 0)
 		err(1, "open(VT_DISALLOCATE)");
 
@@ -151,18 +158,24 @@ static void dump_kmemleak()
 	close(fd);
 }
 
-#define PROCS 4
-#define THREADS 16
-#define LOOPS 1000
+#if 1
+#define PROCS 2
+#define THREADS 4
+#define LOOPS 1000000
+#else
+#define PROCS 2
+#define THREADS 2
+#define LOOPS 10
+#endif
 
 static const struct th_hooks unimap_hooks = {
 	.thread = do_unimap,
-	.add_delay = 10000,
+	//.add_delay = 1000,
 };
 
 static const struct th_hooks disalloc_hooks = {
 	.thread = do_disallocate,
-	.add_delay = 10000,
+	//.add_delay = 1000,
 };
 
 int main()
