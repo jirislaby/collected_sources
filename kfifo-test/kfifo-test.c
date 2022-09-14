@@ -105,7 +105,7 @@ static void do_read(int fd, unsigned int fifo_size)
 
 static void do_write(int fd, unsigned int fifo_size)
 {
-	unsigned char prefill[roundup(fifo_size, 10) + 3];
+	unsigned char prefill[roundup(fifo_size, 10)];
 	unsigned int a, off = 0;
 	ssize_t wr;
 
