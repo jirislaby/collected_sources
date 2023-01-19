@@ -152,6 +152,9 @@ int main(/*int argc, char **argv*/)
 	pkt4.ip.ip_sum = my_cksum(&pkt4.ip, sizeof(pkt4.ip));
 	pkt6.udp.uh_sum = my_cksum6(&pkt6.ip6);
 
+	setenv("SLIRP_DEBUG", "misc,call", 0);
+	setenv("G_MESSAGES_DEBUG", "all", 0);
+
 	s = slirp_new(&cfg, &cb, NULL);
 	slirp_input(s, (uint8_t *)&pkt4, sizeof(pkt4));
 	slirp_input(s, (uint8_t *)&pkt6, sizeof(pkt6));
