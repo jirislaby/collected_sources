@@ -1,0 +1,5 @@
+Video:
+ffmpeg -c rawvideo -f rawvideo -s:v 720x288 -pix_fmt yuyv422 -r 25 -i xxx.raw -c copy -y aaaa.avi
+
+Sound:
+ffmpeg -f s16le -ar 48000  -ac 2 -c:a pcm_s16le -i xxxs.raw -y xxxs.wav

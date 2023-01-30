@@ -256,7 +256,7 @@ static void handle_bulk(const struct usb_pkt *pkt, uint32_t sec)
 static void handle_single_isoc(const void *isoc_data, uint32_t len)
 {
 	dump_data_limited(isoc_data, len, 20);
-	//write(2, isoc_data, len);
+	write(2, isoc_data, len);
 }
 
 static void handle_isoc(const struct usb_pkt *pkt, uint32_t sec)
