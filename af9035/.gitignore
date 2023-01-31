@@ -1,2 +1,8 @@
 *.pcap
 /pkt
+/demux
+/pcm
+*.raw
+*.wav
+*.mkv
+*.avi

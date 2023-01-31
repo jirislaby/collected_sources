@@ -54,24 +54,16 @@ struct header {
 
 #define PACKET_SIZE		184
 #define HEADER_FA(hdr)		(((hdr)->val & 0xff000000) >> 24)
-#define HEADER_TY1(hdr)		(((hdr)->val & 0x00800000) >> 23)
-#define HEADER_TY2(hdr)		(((hdr)->val & 0x00400000) >> 22)
-#define HEADER_TY3(hdr)		(((hdr)->val & 0x00200000) >> 21)
-#define HEADER_TY4(hdr)		(((hdr)->val & 0x00100000) >> 20)
-#define HEADER_TY_MASK(hdr)	(((hdr)->val & 0x00f00000) >> 20)
-#define  DATA_8				    0x2
-#define  DATA_148			    0x5
-#define  DATA_60			    0xe
+#define HEADER_WORDS(hdr)	(((hdr)->val & 0x00f00000) >> 20)
 #define HEADER_SEQ_BOT(hdr)	(((hdr)->val & 0x000f0000) >> 16)
 #define  HEADER_SEQ_BOT_BITS	4
 #define HEADER_SEQ_TOP(hdr)	(((hdr)->val & 0x0000f800) >> 11)
-#define HEADER_res1(hdr)	(((hdr)->val & 0x00000400) >> 10)
-#define HEADER_res2(hdr)	(((hdr)->val & 0x00000200) >>  9)
-#define HEADER_res3(hdr)	(((hdr)->val & 0x00000100) >>  8)
+#define HEADER_FLIP(hdr)	(((hdr)->val & 0x00000400) >> 10)
+#define HEADER_HISIZE(hdr)	(((hdr)->val & 0x00000300) >>  8)
 #define HEADER_REAL(hdr)	(((hdr)->val & 0x00000080) >>  7)
 #define HEADER_AUDIO(hdr)	(((hdr)->val & 0x00000040) >>  6)
 #define HEADER_SYNC(hdr)	(((hdr)->val & 0x00000020) >>  5)
-#define HEADER_FINAL(hdr)	(((hdr)->val & 0x00000010) >>  4)
+#define HEADER_unk1(hdr)	(((hdr)->val & 0x00000010) >>  4)
 #define HEADER_XXX_MASK(hdr)	(((hdr)->val & 0x000000f0) >>  4)
 #define HEADER_SY(hdr)		(((hdr)->val & 0x0000000f) >>  0)
 
@@ -85,37 +77,10 @@ static inline uint16_t HEADER_SEQ(const struct header *hdr)
 	return seq;
 }
 
-static unsigned get_data_size(const struct header *header, bool *old)
+static inline unsigned HEADER_SIZE(const struct header *hdr)
 {
-	*old = 0;
-	if (HEADER_res3(header))
-	    return 68;
-
-	if (!HEADER_res1(header) && !HEADER_XXX_MASK(header)) {
-		if (HEADER_SEQ(header) == 0x10)
-			return 4;
-		return 0;
-	}
-
-	if (!HEADER_res2(header) && HEADER_XXX_MASK(header) == 0xf)
-		return 12;
-
-	switch (HEADER_TY_MASK(header)) {
-	case DATA_8:
-		*old = 1;
-		return 8;
-	case DATA_148:
-		*old = 1;
-		return 148;
-	case DATA_60:
-		*old = 1;
-		return 56;
-	default:
-		return PACKET_SIZE - sizeof(*header);
-	}
+	return (HEADER_HISIZE(hdr) << 6) | (HEADER_WORDS(hdr) << 2);
 }
-
-#define PAD //"."
 
 int main(int argc, char **argv)
 {
@@ -123,8 +88,8 @@ int main(int argc, char **argv)
 	uint8_t buf[184 - sizeof(header)], videobuf[720*576/2*2];
 	unsigned int pkt = 0, pkt_lim = UINT_MAX;
 	ssize_t rd, to_read;
-	size_t off = 0, skip = 0;
-	unsigned vsize = 0;
+	size_t off = 0;
+	unsigned vsize = 0, asize = 0;
 	bool synced = false;
 	int o, video_fd = -1, audio_fd = -1, in_fd = STDIN_FILENO;
 
@@ -152,55 +117,40 @@ int main(int argc, char **argv)
 	}
 
 	while (1) {
-		printf("off=%6zx", off);
-		to_read = sizeof(header) - skip;
-		rd = read(in_fd, (void *)&header + skip, to_read);
+		printf("off=%7zx", off);
+		rd = read(in_fd, (void *)&header, sizeof(header));
 		if (!rd)
 			break;
 
-		if (rd != to_read) {
+		if (rd != sizeof(header)) {
 			puts("");
 			fflush(stdout);
 			err(1, "read(header)");
 		}
 
-		skip = 0;
 		off += rd;
 
 		if (header.FA != 0xfa) {
-			unsigned skipped = 0;
-			do {
-				rd = read(in_fd, &header, 1);
-				skipped++;
-				off++;
-			} while (rd > 0 && header.FA != 0xfa);
-			if (rd <= 0)
-				break;
-			printf(" BAD; skipped: %u\n", skipped + 4 - 1);
-			skip = 1;
+			printf(" BAD(%.8x)\n", ntohl(header.val));
 			continue;
 		}
 
 		header.val = ntohl(header.val);
 
-		printf(" hdr=%.8x SEQ=%"PAD"4u/%"PAD"3x%s SY=%u T=%u%u%u%u R=%u%u%u %c%c%c%c",
+		to_read = HEADER_SIZE(&header);
+		printf(" hdr=%.8x SEQ=%4u/%3x%s SY=%u %c%c%c%c%c len=%3zd",
 		       header.val,
 		       HEADER_SEQ(&header), HEADER_SEQ(&header),
 		       (HEADER_SEQ(&header) & 1) ? " ODD" : "",
 		       HEADER_SY(&header),
-		       !!HEADER_TY1(&header), !!HEADER_TY2(&header),
-		       !!HEADER_TY2(&header), !!HEADER_TY3(&header),
-		       !!HEADER_res1(&header), !!HEADER_res2(&header),
-		       !!HEADER_res3(&header),
+		       HEADER_FLIP(&header) ? 'F' : '_',
 		       HEADER_REAL(&header) ? 'R' : '_',
 		       HEADER_AUDIO(&header) ? 'A' : '_',
 		       HEADER_SYNC(&header) ? 'S' : '_',
-		       HEADER_FINAL(&header) ? 'F' : '_');
+		       HEADER_unk1(&header) ? 'U' : '_',
+		       to_read);
 
-		bool old, reset = false;
-		to_read = get_data_size(&header, &old);
-		printf(" len=%"PAD"3zd %c",
-		       to_read, old ? '!' : '_');
+		bool reset = false;
 		if (to_read) {
 			rd = read(in_fd, buf, to_read);
 			if (rd < 0) {
@@ -210,29 +160,31 @@ int main(int argc, char **argv)
 			}
 			if (rd != to_read)
 				break;
-			if (to_read == 180) {
-				if (HEADER_SYNC(&header)) {
-					printf(" S");
-					reset = true;
-					synced = true;
-				} else if (HEADER_AUDIO(&header)) {
-					printf(" A");
-					if (synced && audio_fd >= 0)
-						write(audio_fd, buf, rd);
-				} else {
-					printf(" V");
-					if (synced && video_fd >= 0 &&
-					    vsize + (size_t)rd < sizeof(videobuf))
-						memcpy(&videobuf[vsize], buf,
-						       rd);
-					vsize += rd;
-				}
+
+			if (HEADER_SYNC(&header)) {
+				printf(" S");
+				reset = true;
+				if (!synced)
+					asize = 0;
+				synced = true;
+			} else if (HEADER_AUDIO(&header)) {
+				printf(" A");
+				if (synced && audio_fd >= 0)
+					write(audio_fd, buf, rd);
+				asize += rd;
+			} else if (to_read == 180) {
+				printf(" V");
+				if (synced && video_fd >= 0 &&
+				    vsize + (size_t)rd < sizeof(videobuf))
+					memcpy(&videobuf[vsize], buf,
+					       rd);
+				vsize += rd;
 			} else
 				printf(" _");
 
 			off += rd;
-			printf(" vsize=%"PAD"6u", vsize);
-			dump_data_limited("payl", buf, rd, 16);
+			printf(" vsize=%6u asize=%8u", vsize, asize);
+			dump_data_limited("payl", buf, rd, 8);
 		}
 
 		puts("");

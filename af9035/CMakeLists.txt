@@ -18,6 +18,7 @@ set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -Wextra -ggdb")
 
 add_executable(pkt pkt.c)
 add_executable(demux demux.c)
+add_executable(pcm pcm.c)
 
 if (USE_PCAP)
 	add_compile_definitions(USE_PCAP)
