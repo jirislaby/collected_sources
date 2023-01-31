@@ -1,7 +1,11 @@
 Video:
 -r 50 -- maybe 25/interlaced
 
-ffmpeg -c rawvideo -f rawvideo -s:v 720x288 -pix_fmt yuyv422 -r 50 -i xxx.raw -c copy -y aaaa.avi
+ffmpeg -c rawvideo -f rawvideo -s:v 720x288 -pix_fmt uyvy422 -r 50 -i xxx.raw -c copy -y aaaa.avi
 
 Sound:
 ffmpeg -f s16le -ar 48000  -ac 2 -c:a pcm_s16le -i xxxs.raw -y xxxs.wav
+
+ffmpeg -c rawvideo -f rawvideo -s:v 720x288 -pix_fmt uyvy422 -r 50 -i video.raw \
+	-f s16le -ar 48000 -ac 2 -c:a pcm_s16le -i audio.raw \
+	-r 25 -c:v mpeg2video -qscale:v 2 -vf scale=720:576 -c:a mp3 -y aaaa1.mkv
