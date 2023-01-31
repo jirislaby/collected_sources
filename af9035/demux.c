@@ -74,7 +74,10 @@ static inline uint16_t HEADER_SEQ(const struct header *hdr)
 	seq <<= HEADER_SEQ_BOT_BITS;
 	seq |= HEADER_SEQ_BOT(hdr);
 
-	return seq;
+	if (seq & 1)
+		printf(" ODD SEQ");
+
+	return seq >> 1;
 }
 
 static inline unsigned HEADER_SIZE(const struct header *hdr)
@@ -89,7 +92,7 @@ int main(int argc, char **argv)
 	unsigned int pkt = 0, pkt_lim = UINT_MAX;
 	ssize_t rd, to_read;
 	size_t off = 0;
-	unsigned vsize = 0, asize = 0;
+	unsigned vsize = 0, asize = 0, ssize = 0;
 	bool synced = false;
 	int o, video_fd = -1, audio_fd = -1, in_fd = STDIN_FILENO;
 
@@ -117,7 +120,7 @@ int main(int argc, char **argv)
 	}
 
 	while (1) {
-		printf("off=%7zx", off);
+		printf("off=%8zx", off);
 		rd = read(in_fd, (void *)&header, sizeof(header));
 		if (!rd)
 			break;
@@ -139,10 +142,9 @@ retry:
 		header.val = ntohl(header.val);
 
 		to_read = HEADER_SIZE(&header);
-		printf(" hdr=%.8x SEQ=%4u/%3x%s SY=%u %c%c%c%c%c len=%3zd",
+		printf(" hdr=%.8x SEQ=%3u/%2x SY=%u %c%c%c%c%c len=%3zd",
 		       header.val,
 		       HEADER_SEQ(&header), HEADER_SEQ(&header),
-		       (HEADER_SEQ(&header) & 1) ? " ODD" : "",
 		       HEADER_SY(&header),
 		       HEADER_FLIP(&header) ? 'F' : '_',
 		       HEADER_REAL(&header) ? 'R' : '_',
@@ -164,7 +166,7 @@ retry:
 
 			/* BUG in FW? */
 			if (to_read == 4 && buf[0] == 0xfa) {
-				printf(" BAD -- retrying\noff=%7zx", off);
+				printf(" BAD -- retrying\noff=%8zx", off);
 				memcpy(&header, buf, sizeof(header));
 				goto retry;
 			}
@@ -172,10 +174,12 @@ retry:
 			if (HEADER_unk1(&header)) {
 				printf(" U");
 			} else if (HEADER_SYNC(&header)) {
+				ssize += rd;
 				printf(" S");
 				dump_video = true;
 				if (!synced) {
 					asize = 0;
+					ssize = 0;
 					vsize = 0;
 				}
 				synced = true;
@@ -196,7 +200,7 @@ retry:
 
 			off += rd;
 			printf(" vsize=%6u asize=%8u", vsize, asize);
-			dump_data_limited("payl", buf, rd, 8);
+			dump_data_limited("payl", buf, rd, 12);
 		}
 
 		puts("");
@@ -207,8 +211,9 @@ retry:
 				write(video_fd, videobuf, sizeof(videobuf));
 				memset(videobuf, 0, sizeof(videobuf));
 			}
-			printf("vsize=%u\n", vsize);
+			printf("vsize=%u ssize=%u\n", vsize, ssize);
 			vsize = 0;
+			ssize = 0;
 		}
 
 		if (pkt++ >= pkt_lim)
