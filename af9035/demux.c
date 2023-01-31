@@ -9,12 +9,21 @@
 
 #define min(a, b)	((a) < (b) ? (a) : (b))
 
-static void dump_data(const uint8_t *data, unsigned len)
+static void dump_data(const char *prefix, const uint8_t *data, unsigned len)
 {
-	printf(" data=");
+	printf(" %s=", prefix);
 	for (unsigned a = 0; a < len; a++)
 		printf(" %.2x", data[a]);
 }
+
+static void dump_data_limited(const char *prefix, const uint8_t *data,
+			      unsigned len, unsigned limit)
+{
+	dump_data(prefix, data, min(len, limit));
+	if (len > limit)
+		printf(" (%u more)", len - limit);
+}
+
 
 struct header {
 	uint8_t FA;
@@ -47,17 +56,14 @@ struct header {
 #define HEADER_res2(x)		((x)->seq_res & 1)
 #define HEADER_REAL(x)		((x)->res_stream & 0x80)
 #define HEADER_AUDIO(x)		((x)->res_stream & 0x40)
-#define HEADER_res3(x)		((x)->res_stream & 0x20)
+#define HEADER_SPEC(x)		((x)->res_stream & 0x20)
 #define HEADER_FINAL(x)		((x)->res_stream & 0x10)
 #define HEADER_XXX(x)		((x)->res_stream & 0xf0)
+#define HEADER_SY(x)		((x)->res_stream & 0x0f)
 
 static inline uint16_t HEADER_SEQ(const struct header *hdr)
 {
-	uint16_t seq = hdr->res_stream & 0x0f;
-
-	seq <<= 6;
-	seq |= (hdr->seq_res & ~3) >> 2;
-	seq <<= 4;
+	uint16_t seq = (hdr->seq_res & ~3) << 2;
 	seq |= hdr->type_seq & 0x0f;
 
 	return seq;
@@ -131,17 +137,18 @@ int main()
 			continue;
 		}
 
-		dump_data((const void *)&header, sizeof(header));
+		dump_data("hdr", (const void *)&header, sizeof(header));
 
-		printf(" SEQ=%5u/%4x%s T=%u%u%u%u R=%u%u %c%c%c%c",
+		printf(" SEQ=%4u/%3x%s SY=%u T=%u%u%u%u R=%u%u %c%c%c%c",
 		       HEADER_SEQ(&header), HEADER_SEQ(&header),
 		       (HEADER_SEQ(&header) & 1) ? " ODD" : "",
+		       HEADER_SY(&header),
 		       !!HEADER_TY1(&header), !!HEADER_TY2(&header),
 		       !!HEADER_TY2(&header), !!HEADER_TY3(&header),
 		       !!HEADER_res1(&header), !!HEADER_res2(&header),
 		       HEADER_REAL(&header) ? 'R' : '_',
 		       HEADER_AUDIO(&header) ? 'A' : '_',
-		       HEADER_res3(&header) ? 'X' : '_',
+		       HEADER_SPEC(&header) ? 'X' : '_',
 		       HEADER_FINAL(&header) ? 'F' : '_');
 
 		bool old;
@@ -154,16 +161,26 @@ int main()
 				fflush(stdout);
 				err(1, "read(data) at 0x%zx", off);
 			}
-#define DUMP_RAW
-			if (to_read == 180 && HEADER_AUDIO(&header) && !HEADER_res3(&header)) {
-				printf(" DUMP");
-#ifdef DUMP_RAW
-				write(2, buf, rd);
+//#define DUMP_RAW
+			if (to_read == 180) {
+				if (HEADER_SPEC(&header))
+					printf(" S");
+				else if (HEADER_AUDIO(&header)) {
+					printf(" A");
+#ifdef DUMP_AUDIO
+					write(2, buf, rd);
 #endif
-			}
+				} else {
+					printf(" V");
+#ifdef DUMP_VIDEO
+					write(2, buf, rd);
+#endif
+				}
+			} else
+				printf(" _");
 
 			off += rd;
-			dump_data(buf, min(rd, 24));
+			dump_data_limited("payl", buf, rd, 20);
 		}
 
 		puts("");
