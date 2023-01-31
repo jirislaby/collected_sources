@@ -135,6 +135,7 @@ int main(int argc, char **argv)
 			continue;
 		}
 
+retry:
 		header.val = ntohl(header.val);
 
 		to_read = HEADER_SIZE(&header);
@@ -150,7 +151,7 @@ int main(int argc, char **argv)
 		       HEADER_unk1(&header) ? 'U' : '_',
 		       to_read);
 
-		bool reset = false;
+		bool dump_video = false;
 		if (to_read) {
 			rd = read(in_fd, buf, to_read);
 			if (rd < 0) {
@@ -161,11 +162,22 @@ int main(int argc, char **argv)
 			if (rd != to_read)
 				break;
 
-			if (HEADER_SYNC(&header)) {
+			/* BUG in FW? */
+			if (to_read == 4 && buf[0] == 0xfa) {
+				printf(" BAD -- retrying\noff=%7zx", off);
+				memcpy(&header, buf, sizeof(header));
+				goto retry;
+			}
+
+			if (HEADER_unk1(&header)) {
+				printf(" U");
+			} else if (HEADER_SYNC(&header)) {
 				printf(" S");
-				reset = true;
-				if (!synced)
+				dump_video = true;
+				if (!synced) {
 					asize = 0;
+					vsize = 0;
+				}
 				synced = true;
 			} else if (HEADER_AUDIO(&header)) {
 				printf(" A");
@@ -189,8 +201,9 @@ int main(int argc, char **argv)
 
 		puts("");
 
-		if (reset && vsize) {
+		if (dump_video && vsize) {
 			if (synced && video_fd >= 0) {
+				printf("dumping; ");
 				write(video_fd, videobuf, sizeof(videobuf));
 				memset(videobuf, 0, sizeof(videobuf));
 			}
