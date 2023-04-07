@@ -1,0 +1,10 @@
+.ninja_*
+CMakeCache.txt
+CMakeFiles/
+build.ninja
+cmake_install.cmake
+*.o
+cr
+gmon.out
+perf.data*
+slovnik/
