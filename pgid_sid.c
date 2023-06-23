@@ -11,7 +11,7 @@ static void fump(const char *who, unsigned int a)
 			getpid(), getpgrp(), getsid(0));
 }
 
-static void sig(int s)
+static void sig(int)
 {
 	printf("%s: %d\n", __func__, getpid());
 }

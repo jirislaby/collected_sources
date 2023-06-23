@@ -8,7 +8,7 @@ static pthread_cond_t cond;
 static pthread_cond_t condw;
 static char ccc;
 
-static void *thr(void *d)
+static void *thr(void *)
 {
 	pthread_mutex_lock(&m);
 	while (1) {

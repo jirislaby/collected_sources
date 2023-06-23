@@ -28,7 +28,7 @@ static void dump(unsigned char *mem, unsigned long size, unsigned long a)
 	puts("");
 }
 
-int main(int argc, char **argv)
+int main(int, char **argv)
 {
 	unsigned long a, size = atol(argv[1]) << 20;
 	unsigned char *mem;

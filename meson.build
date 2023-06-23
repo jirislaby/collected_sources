@@ -2,7 +2,7 @@ project('collected_sources', 'c',
   version: '1',
   default_options: [
     'optimization=g',
-    'warning_level=1',
+    'warning_level=2',
     #'b_lto=true',
     'b_pie=true',
   ])

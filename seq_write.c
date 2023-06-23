@@ -3,7 +3,7 @@
 #include <string.h>
 #include <unistd.h>
 
-int main(int argc, char **argv)
+int main()
 {
 	unsigned int a = 0;
 

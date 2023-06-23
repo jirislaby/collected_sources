@@ -34,7 +34,7 @@ static void do_fp(pid_t pid, int sig)
 					i, pid, sig,
 					a, b, a * b, (long)(c * d), c * d, c, d);
 		double rad = (double)(a % 180) / 180 * M_PI / 2;
-		if (abs(asin(sin(rad)) - rad) > 0.00001)
+		if (fabs(asin(sin(rad)) - rad) > 0.00001)
 			printf("\n%u %u %u asin(sin(%3ld = %5.3F)) = %7.2F != %7.2F (sin = %5.2F)\n",
 					i, pid, sig,
 					a % 180,
@@ -52,7 +52,7 @@ static void child(void)
 		do_fp(pid, 0);
 }
 
-static void sig(int signr)
+static void sig(int)
 {
 //	do_fp(getpid(), 1);
 }

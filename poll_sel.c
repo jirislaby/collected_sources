@@ -5,7 +5,7 @@
 #include <sys/socket.h>
 #include <sys/select.h>
 
-int main(int argc, char **argv)
+int main(int argc, char **)
 {
 	int fd = socket(AF_UNIX, SOCK_DGRAM, 0);
 	if (argc > 2) {
@@ -24,7 +24,11 @@ int main(int argc, char **argv)
 		for (b = 0; b < a; b++)
 			printf("some event: %d ready for %x!\n", epe[b].data.fd, epe[b].events);
 	} else if (argc > 1) {
-		struct pollfd pfd[] = { { 0, POLLIN }, {2, POLLIN}, { fd, POLLIN | POLLOUT } };
+		struct pollfd pfd[] = {
+			{ .fd = 0, .events = POLLIN },
+			{ .fd = 2, .events = POLLIN },
+			{ .fd = fd, .events = POLLIN | POLLOUT }
+		};
 		if (poll(pfd, 3, -1) > 0)
 			printf("some event: %d ready for %d!\n", pfd[2].fd, pfd[2].revents);
 	} else {

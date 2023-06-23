@@ -10,7 +10,7 @@
 #include <sys/types.h>
 #include <sys/uio.h>
 
-int main(int argc, char **argv)
+int main(int argc, char **)
 {
 	char buf[] = { 0xff, 0 };
 	struct iovec iov = {

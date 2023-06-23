@@ -50,7 +50,11 @@ void loop(int fd)
 int main(int argc, char **argv)
 {
 	struct protoent *pe = getprotobyname("tcp");
-	struct addrinfo *out, ai = {0, PF_UNSPEC, SOCK_STREAM, pe->p_proto, };
+	struct addrinfo *out, ai = {
+		.ai_family = PF_UNSPEC,
+		.ai_socktype = SOCK_STREAM,
+		.ai_protocol = pe->p_proto,
+	};
 	int sock;
 
 	argc--, argv++;

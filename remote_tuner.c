@@ -49,14 +49,14 @@ static void kill_tzap(void)
 		kill(tzap_pid, SIGTERM);
 }
 
-static int handle_conn(int conn, struct sockaddr *ss, socklen_t ss_size)
+static int handle_conn(int conn)
 {
 	struct pollfd pollfd[2] = {
 		{ .fd = conn, .events = POLLIN },
 		{ .events = POLLIN }
 	};
 	nfds_t pollfds = 1;
-	size_t r;
+	ssize_t r;
 	char buf[128];
 
 	while (1) {
@@ -86,7 +86,7 @@ static int handle_conn(int conn, struct sockaddr *ss, socklen_t ss_size)
 			}
 		}
 		if (pollfd[1].revents & POLLIN) {
-			size_t w;
+			ssize_t w;
 			r = read(pollfd[1].fd, buf, sizeof(buf) - 1);
 			if (r < 0)
 				err(1, "read from dvr");
@@ -112,7 +112,11 @@ static int handle_conn(int conn, struct sockaddr *ss, socklen_t ss_size)
 int main(int argc, char **argv)
 {
 	struct protoent *pe = getprotobyname("tcp");
-	struct addrinfo *out, ai = {0, PF_UNSPEC, SOCK_STREAM, pe->p_proto, };
+	struct addrinfo *out, ai = {
+		.ai_family = PF_UNSPEC,
+		.ai_socktype = SOCK_STREAM,
+		.ai_protocol = pe->p_proto,
+	};
 	struct sockaddr_storage ss;
 	socklen_t ss_size = sizeof(ss);
 	int sock, conn, a = 1;
@@ -161,12 +165,12 @@ int main(int argc, char **argv)
 		err(1, "listen");
 
 	while ((conn = accept(sock, (struct sockaddr *)&ss, &ss_size)) != -1)
-		if (handle_conn(conn, (struct sockaddr *)&ss, ss_size))
+		if (handle_conn(conn))
 			break;
 
 	if (conn < 0)
 		err(1, "accept");
-			
+
 	close(sock);
 
 	return 0;

@@ -6,7 +6,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-int main(int argc, char **argv)
+int main(int, char **argv)
 {
 	while (1) {
 		int fd = open(argv[1], O_RDWR);
