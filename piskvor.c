@@ -8,9 +8,9 @@ char zacinajici = 'x';
 int a_sl;
 int a_ra;
 
-void PrintArea(const int coll, const int row, char area[coll][row]);
-void xoRead(int coll, int row, char area[coll][row]);
-int isWinner(const int coll, const int row, char area[coll][row]);
+void PrintArea(const int coll, const int row, char area[row][coll]);
+void xoRead(int coll, int row, char area[row][coll]);
+int isWinner(const int coll, const int row, char area[row][coll]);
 
 int main(int argc, char *argv[])
 {
