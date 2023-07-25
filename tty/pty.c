@@ -14,7 +14,7 @@
 
 #include <termios.h>
 
-void send(int ptmx, int fd)
+static void send(int ptmx, int fd)
 {
 	char buf[4096];
 	int counter = 0;
@@ -34,7 +34,7 @@ void send(int ptmx, int fd)
 
 #define THREADS 10
 
-void fork_send(int ptmx, int fd)
+static void fork_send(int ptmx, int fd)
 {
 	int a;
 	for (a = 0; a < THREADS - 1; a++) {
