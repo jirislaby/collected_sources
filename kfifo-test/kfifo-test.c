@@ -13,7 +13,6 @@
 #include <sys/ioctl.h>
 #include <sys/wait.h>
 
-#define FIFO
 //#define DUMP
 #define TIMEOUT 3
 #define ERRORS 2
