@@ -10,7 +10,7 @@
 #include <sys/socket.h>
 #include <sys/wait.h>
 
-static void *child(void *data)
+static void *child(void *)
 {
 	struct sockaddr_in saddr = {
 		.sin_family = AF_INET,
