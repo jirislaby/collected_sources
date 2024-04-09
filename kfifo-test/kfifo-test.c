@@ -130,6 +130,9 @@ static void do_write(int fd, unsigned int fifo_size)
 		if (!wr)
 			errx(1, "nothing written");
 
+		if (!(rand() % 10000))
+			ioctl(fd, 0x1234, 0);
+
 		off += wr;
 	}
 }
