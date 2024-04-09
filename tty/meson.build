@@ -13,6 +13,7 @@ progs = [
   'csi_P', 'kdgkb',
   'ld', 'ld1', 'ld2',
   'n_gsm', 'pty', 'serial',
+  'tcset2',
   'tiocm', 'tiocsetd',
   'tty1',
   'tty_double', 'tty_double_r',
