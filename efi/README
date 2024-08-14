@@ -1,0 +1,2 @@
+run as:
+qemu-kvm -nographic -bios /usr/share/qemu/ovmf-x86_64-opensuse.bin -kernel main.efi

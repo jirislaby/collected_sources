@@ -1,6 +1,8 @@
 #include <efi.h>
 #include <efilib.h>
 
+#include "common.h"
+
 static EFI_STATUS get_keystroke(EFI_INPUT_KEY *key)
 {
 	SIMPLE_INPUT_INTERFACE *ci = ST->ConIn;
@@ -61,18 +63,27 @@ EFI_STATUS efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *systab)
 	systab->ConOut->EnableCursor(systab->ConOut, TRUE);
 
 	Print(L"Hello, world!\n");
-	Input(L"Input something: ", buf, sizeof(buf));
-	Print(L"\nYou wrote: %s\n", buf);
-	if (!StrCmp(buf, L"vars"))
-		dump_vars();
+	while (1) {
+		Input(L"Input command: ", buf, sizeof(buf));
+		Print(L"\nYou wrote: %s\n", buf);
+		if (!StrnCmp(buf, L"q", 1))
+			break;
 
-	do {
-		Print(L"Press a key (ESC to exit)...\n");
-		get_keystroke(&key);
-		Print(L"\nYou pressed=%d/%d\n", key.ScanCode, key.UnicodeChar);
-	} while (key.ScanCode != 23);
+		if (!StrCmp(buf, L"acpi"))
+			dump_ACPI(systab);
+		else if (!StrCmp(buf, L"keys"))
+			dump_ACPI(systab);
+		else if (!StrCmp(buf, L"keys")) {
+			do {
+				Print(L"Press a key (ESC to exit)...\n");
+				get_keystroke(&key);
+				Print(L"\nYou pressed=%d/%d\n", key.ScanCode, key.UnicodeChar);
+			} while (key.ScanCode != 23);
+		} else if (!StrCmp(buf, L"vars"))
+			dump_vars();
+	}
 
-	msleep(3000);
+	msleep(1000);
 
 	return gRT->ResetSystem(EfiResetShutdown, EFI_SUCCESS, 0, NULL);
 }

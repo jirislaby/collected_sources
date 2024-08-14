@@ -11,6 +11,8 @@ LDFLAGS=-nostdlib -znocombreloc
 LDLIBS=-L/usr/lib64 -lefi -lgnuefi
 #-L/usr/lib64/gcc/x86_64-suse-linux/10/ -lgcc
 
+OBJS=acpi.o main.o pic.o
+
 COPY_SECTIONS=.text .sdata .data .dynamic .dynsym .rel .rela .rel.* .rela.* \
 	      .reloc
 
@@ -19,5 +21,5 @@ all: main.efi
 %.efi: %.so
 	$(OBJCOPY) $(addprefix -j ,$(COPY_SECTIONS)) --target efi-app-x86_64 $^ $@
 
-%.so: %.o
+%.so: $(OBJS)
 	$(LD) $(LDFLAGS) -shared -Bsymbolic -T$(LD_SCRIPT) -o $@ $(CRT0) $^ $(LDLIBS)
