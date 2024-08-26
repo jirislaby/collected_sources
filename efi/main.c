@@ -17,6 +17,17 @@ static EFI_STATUS get_keystroke(EFI_INPUT_KEY *key)
 	return efi_status;
 }
 
+static void handle_keys()
+{
+	EFI_INPUT_KEY key;
+
+	do {
+		Print(L"Press a key (ESC to exit)...\n");
+		get_keystroke(&key);
+		Print(L"\nYou pressed=%d/%d\n", key.ScanCode, key.UnicodeChar);
+	} while (key.ScanCode != 23);
+}
+
 static void usleep(UINTN us)
 {
 	gBS->Stall(us);
@@ -53,7 +64,6 @@ static void dump_vars()
 EFI_STATUS efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *systab)
 {
 	CHAR16 buf[64];
-	EFI_INPUT_KEY key;
 
 	InitializeLib(image, systab);
 
@@ -72,14 +82,8 @@ EFI_STATUS efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *systab)
 		if (!StrCmp(buf, L"acpi"))
 			dump_ACPI(systab);
 		else if (!StrCmp(buf, L"keys"))
-			dump_ACPI(systab);
-		else if (!StrCmp(buf, L"keys")) {
-			do {
-				Print(L"Press a key (ESC to exit)...\n");
-				get_keystroke(&key);
-				Print(L"\nYou pressed=%d/%d\n", key.ScanCode, key.UnicodeChar);
-			} while (key.ScanCode != 23);
-		} else if (!StrCmp(buf, L"vars"))
+			handle_keys();
+		else if (!StrCmp(buf, L"vars"))
 			dump_vars();
 	}
 
