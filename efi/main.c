@@ -81,6 +81,8 @@ EFI_STATUS efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *systab)
 
 		if (!StrCmp(buf, L"acpi"))
 			dump_ACPI(systab);
+		else if (!StrCmp(buf, L"apic"))
+			dump_APIC();
 		else if (!StrCmp(buf, L"keys"))
 			handle_keys();
 		else if (!StrCmp(buf, L"vars"))

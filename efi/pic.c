@@ -50,3 +50,7 @@ void dump_IOAPIC(UINT32 address)
 		      val64 & 0xff);
 	}
 }
+
+void dump_APIC()
+{
+}
