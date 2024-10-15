@@ -73,7 +73,8 @@ EFI_STATUS efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *systab)
 	systab->ConOut->EnableCursor(systab->ConOut, TRUE);
 
 	Print(L"Hello, world!\n");
-	while (1) {
+	dump_x2APIC();
+	while (0) {
 		Input(L"Input command: ", buf, sizeof(buf));
 		Print(L"\nYou wrote: %s\n", buf);
 		if (!StrnCmp(buf, L"q", 1))
@@ -82,7 +83,7 @@ EFI_STATUS efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *systab)
 		if (!StrCmp(buf, L"acpi"))
 			dump_ACPI(systab);
 		else if (!StrCmp(buf, L"apic"))
-			dump_APIC();
+			dump_x2APIC();
 		else if (!StrCmp(buf, L"keys"))
 			handle_keys();
 		else if (!StrCmp(buf, L"vars"))
