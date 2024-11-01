@@ -1,0 +1,13 @@
+[binaries]
+c = 'avr-gcc'
+strip = 'avr-strip'
+objcopy = 'avr-objcopy'
+
+[built-in options]
+c_args = ['-mmcu=atmega16a']
+
+[host_machine]
+cpu_family = 'avr'
+cpu = 'atmega16a'
+endian = 'little'
+system = 'avr'
