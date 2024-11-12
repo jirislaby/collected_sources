@@ -70,9 +70,10 @@ static void install_tpm()
 	PoolAllocationType = EfiACPIReclaimMemory;
 
 	/* dummy, RNG in Linux kernel */
-	AllocatePool(4 + 32);
+	void *rng = AllocatePool(4 + 32);
+	Print(L"rng=0x%lX\n", rng);
 
-	unsigned log_size = 64 << 10;
+	unsigned log_size = 59048;
 	struct linux_efi_tpm_eventlog *log_tbl = AllocateZeroPool(sizeof(*log_tbl) + log_size);
 	log_tbl->size = log_size;
         log_tbl->final_events_preboot_size = 10;
