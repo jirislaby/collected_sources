@@ -4,17 +4,15 @@
 
 #include <util/delay.h>
 
-#define BIT(x)	(1U << (x))
-
 int main()
 {
-	DDRB |= (1 << PB0);
+	DDRA |= _BV(PA0);
 
 	while (1) {
-		PORTB |= BIT(PB0);
-		_delay_ms(1000);
-		PORTB &= ~BIT(PB0);
-		_delay_ms(1000);
+		PORTA |= _BV(PA0);
+		//_delay_ms(1000);
+		PORTA &= ~_BV(PA0);
+		//_delay_ms(1000);
 	}
 
 	return 0;
