@@ -1,0 +1,14 @@
+[binaries]
+c = 'avr-gcc'
+strip = 'avr-strip'
+objcopy = 'avr-objcopy'
+
+[built-in options]
+c_args = ['-mmcu=attiny2313a']
+c_link_args = ['-mmcu=attiny2313a']
+
+[host_machine]
+cpu_family = 'avr'
+cpu = 'attiny2313a'
+endian = 'little'
+system = 'avr'

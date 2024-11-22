@@ -5,6 +5,7 @@ objcopy = 'avr-objcopy'
 
 [built-in options]
 c_args = ['-mmcu=atmega16a']
+c_link_args = ['-mmcu=atmega16a']
 
 [host_machine]
 cpu_family = 'avr'
