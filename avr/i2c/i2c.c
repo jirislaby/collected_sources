@@ -1,21 +1,14 @@
-#define F_CPU 8000000UL
-
 #include <stdbool.h>
 
-#include <avr/io.h>
-
-#include <util/delay.h>
-
-#if defined(_AVR_ATmega16A_H_) && 1
 #include <avr/interrupt.h>
+#include <avr/io.h>
 #include <avr/sleep.h>
-#include <util/twi.h>
-//#define I2C
-#define SPI
-#define I2C_IRQ 1
-#endif
 
-#ifdef I2C
+#include <util/twi.h>
+
+#if defined(_AVR_ATmega16A_H_)
+#define I2C_IRQ		1
+
 static void set_TWCR(bool initial, bool ack, bool stop)
 {
 	uint8_t irq_bit = I2C_IRQ ? _BV(TWIE) : 0;
@@ -97,23 +90,12 @@ ISR(TWI_vect)
 	handle_TW_STATUS();
 }
 #endif
-#elif defined SPI
-ISR(SPI_STC_vect)
-{
-	PORTA ^= _BV(PA0);
-	PORTD ^= _BV(6);
-	uint8_t data = SPDR;
-	SPDR = ++data | 0x80;
-	PORTB = data;
-}
-#endif
 
 int main()
 {
 	DDRA |= _BV(PA0);
 	DDRD = 0xff;
 
-#ifdef I2C
 	DDRB = 0xff;
 	TWAR = 0x11 << 1;
 	TWSR = 0;
@@ -134,23 +116,14 @@ int main()
 		handle_TW_STATUS();
 	}
 
-#elif defined SPI
-	MISO_DDR = _BV(MISO_BIT);
-	SPCR = _BV(SPE) | _BV(SPIE);
-	SPDR = 0xa0;
-	sei();
-
-	while (1) {
-		sleep_mode();
-	}
-#else
-	while (1) {
-		PORTA |= _BV(PA0);
-		_delay_ms(1000);
-		PORTA &= ~_BV(PA0);
-		_delay_ms(1000);
-	}
-#endif
-
 	return 0;
 }
+
+#else
+
+int main()
+{
+	return 0;
+}
+
+#endif
