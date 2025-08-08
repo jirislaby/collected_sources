@@ -14,4 +14,5 @@ avrdude = find_program('avrdude')
 
 subdir('leds')
 subdir('i2c')
+subdir('temp')
 subdir('spi')

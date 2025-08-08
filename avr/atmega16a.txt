@@ -4,7 +4,7 @@ strip = 'avr-strip'
 objcopy = 'avr-objcopy'
 
 [built-in options]
-c_args = [ '-mmcu=atmega16a', '-DF_CPU=8000000UL' ]
+c_args = [ '-mmcu=atmega16a', '-DF_CPU=4000000UL' ]
 c_link_args = ['-mmcu=atmega16a']
 
 [host_machine]
