@@ -58,14 +58,14 @@ class colors {
 
 // nespratelene funkce a operatory
 
-  colors<T> operator+ (const colors<T>);// aditivní míchání barev
-  colors<T> operator- (const colors<T>);// subtraktivní míchání barev
-  void pocet_bitu (int, int, int, int, int, int);// nastavení poètu bitù 
-						 //pro jednotlivé barvy
-  T RGBtoT (float, float, float);// pøevod barvy z vyjádøení 3 èísly float 
-			//na celé èíslo typu daného parametrem sablony
-  RGB TtoRGB () const;// pøevod barvy z vyjádøení z celého èísla typu 
-			//daného parametrem sablony na 3 èísla float
+  colors<T> operator+ (const colors<T>);// aditivnÃ­ mÃ­chÃ¡nÃ­ barev
+  colors<T> operator- (const colors<T>);// subtraktivnÃ­ mÃ­chÃ¡nÃ­ barev
+  void pocet_bitu (int, int, int, int, int, int);// nastavenÃ­ poÄtu bitÅ¯ 
+						 //pro jednotlivÃ© barvy
+  T RGBtoT (float, float, float);// pÅ™evod barvy z vyjÃ¡dÅ™enÃ­ 3 ÄÃ­sly float 
+			//na celÃ© ÄÃ­slo typu danÃ©ho parametrem sablony
+  RGB TtoRGB () const;// pÅ™evod barvy z vyjÃ¡dÅ™enÃ­ z celÃ©ho ÄÃ­sla typu 
+			//danÃ©ho parametrem sablony na 3 ÄÃ­sla float
   int zaokrouhli(float a);
 };
 
@@ -97,7 +97,7 @@ template<typename T> colors<T>::colors () {
  color = RGBtoT(0,0,0);
 }
 
-/* nastavení poètu bitù pro jednotlivé barvy */
+/* nastavenÃ­ poÄtu bitÅ¯ pro jednotlivÃ© barvy */
 
 template <typename T> void colors<T>::pocet_bitu (int rr, int gg , int bb, 
 int m_rr, int m_gg, int m_bb) {
@@ -120,7 +120,7 @@ template <typename T> int colors<T>::zaokrouhli(float a) {
 					    : static_cast<int>( ceil(a));
 }
 
-/* pøevod barvy z vyjádøení 3 èísly float na celé èíslo typu daného 
+/* pÅ™evod barvy z vyjÃ¡dÅ™enÃ­ 3 ÄÃ­sly float na celÃ© ÄÃ­slo typu danÃ©ho 
 						parametrem sablony */
 
 template <typename T> T colors<T>::RGBtoT (float rr, float gg, float bb) {
@@ -133,8 +133,8 @@ template <typename T> T colors<T>::RGBtoT (float rr, float gg, float bb) {
 	return pom;
 }
 
-/* pøevod barvy z vyjádøení z celého èísla typu daného parametrem sablony 
-na 3 èísla float */
+/* pÅ™evod barvy z vyjÃ¡dÅ™enÃ­ z celÃ©ho ÄÃ­sla typu danÃ©ho parametrem sablony 
+na 3 ÄÃ­sla float */
 
 template <typename T> RGB colors<T>::TtoRGB () const {
 	RGB result;
@@ -148,7 +148,7 @@ template <typename T> RGB colors<T>::TtoRGB () const {
 }
 
 template<typename T> colors<T> colors<T>::operator+(const colors<T> b) {
-// aditivní míchání barev
+// aditivnÃ­ mÃ­chÃ¡nÃ­ barev
 	RGB pom1 = TtoRGB();
 	RGB pom2 = b.TtoRGB();
 	colors<T> result(*this);
@@ -166,7 +166,7 @@ template<typename T> colors<T> colors<T>::operator+(const colors<T> b) {
 }
 
 template<typename T> colors<T> colors<T>::operator-(const colors<T> b) {
-// subtraktivní míchání barev
+// subtraktivnÃ­ mÃ­chÃ¡nÃ­ barev
 	RGB pom1 = TtoRGB();
 	RGB pom2 = b.TtoRGB();
 	colors<T> result;
