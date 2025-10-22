@@ -29,6 +29,8 @@ CMakeCache.txt
 CMakeFiles/
 build.ninja
 cmake_install.cmake
+meson.build.user
+build
 
 /evtest
 
