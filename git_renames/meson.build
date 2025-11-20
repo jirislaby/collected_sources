@@ -11,11 +11,20 @@ project('git_renames', 'cpp',
 
 deps = []
 deps += dependency('cxxopts')
-deps += dependency('slgit++')
+git = dependency('slgit++')
+deps += git
+deps += dependency('slkerncvs++')
+deps += dependency('slsqlite++')
 
 prj_name = meson.project_name()
 executable(prj_name,
   [ prj_name + '.cpp' ],
   dependencies: deps,
+  install: true,
+)
+
+executable('log-raw',
+  [ 'log-raw.cpp' ],
+  dependencies: [ git ],
   install: true,
 )
