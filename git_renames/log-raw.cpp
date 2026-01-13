@@ -17,17 +17,17 @@ void handleCommit(const SlGit::Repo &lrepo,
 {
 	const auto sha = commit.idStr();
 	Clr(Clr::GREEN) << sha.substr(0, 12) << ' ' << commit.summary();
-	git_diff_options opts = GIT_DIFF_OPTIONS_INIT;
+	git_diff_options opts GIT_DIFF_OPTIONS_INIT;
 	opts.flags |= GIT_DIFF_DISABLE_PATHSPEC_MATCH;
 	auto diff = lrepo.diff(*commit.parent(), commit, &opts);
 	if (!diff)
 		throw std::runtime_error("cannot get a diff for " + commit.idStr() + ": " +
-					 lrepo.lastError().first);
-	return;
+					 lrepo.lastError());
+
 	Clr(std::cerr, Clr::GREEN) << "\tfindSimilar";
-	if (diff->findSimilar())
+	if (!diff->findSimilar())
 		throw std::runtime_error("cannot find renames in a diff: " +
-					 lrepo.lastError().first);
+					 lrepo.lastError());
 
 	struct SlGit::Diff::ForEachCB cb {
 		.file = [](const git_diff_delta &delta, float) -> int {
@@ -56,7 +56,7 @@ void handleCommit(const SlGit::Repo &lrepo,
 
 	Clr(std::cerr, Clr::GREEN) << "\tfor each";
 	if (diff->forEach(cb))
-		throw std::runtime_error("diff failed: " + lrepo.lastError().first);
+		throw std::runtime_error("diff failed: " + lrepo.lastError());
 }
 
 void between(const SlGit::Repo &lrepo, const std::string &begin,
@@ -64,18 +64,19 @@ void between(const SlGit::Repo &lrepo, const std::string &begin,
 {
 	auto revsOpt = lrepo.revWalkCreate();
 	if (!revsOpt)
-		throw std::runtime_error("cannot create rev walk: " + lrepo.lastError().first);
+		throw std::runtime_error("cannot create rev walk: " + lrepo.lastError());
 	auto revs = std::move(*revsOpt);
 	// TODO unneeded?
-	if (revs.sorting(GIT_SORT_TIME | GIT_SORT_TOPOLOGICAL))
-		throw std::runtime_error("cannot set sorting: " + lrepo.lastError().first);
+	if (!revs.sorting(GIT_SORT_TIME | GIT_SORT_TOPOLOGICAL))
+		throw std::runtime_error("cannot set sorting: " + lrepo.lastError());
 
 	if (!begin.empty() && !revs.hide(begin))
 		throw std::runtime_error("cannot find begin commit " + begin + ": " +
-					 lrepo.lastError().first);
+					 lrepo.lastError());
+
 	if (!revs.push(end))
 		throw std::runtime_error("cannot find end commit " + end + ": " +
-					 lrepo.lastError().first);
+					 lrepo.lastError());
 
 	Clr(Clr::CYAN) << begin << ".." << end;
 	while (auto commit = revs.next()) {

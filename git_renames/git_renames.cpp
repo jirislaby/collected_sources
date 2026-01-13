@@ -219,15 +219,15 @@ void handleSHA(const SlGit::Repo &repo, const std::string &sha, bool renames)
 	const auto commit = repo.commitRevparseSingle(sha);
 	if (!commit)
 		throw std::runtime_error("cannot find commit " + sha + ": " +
-					 repo.lastError().first);
+					 repo.lastError());
 
 	if (commit->parentCount() > 1)
 		throw std::runtime_error(commit->idStr() + " is a merge commit");
 
 	const auto diff = repo.diff(*commit, *commit->parent());
 
-	if (renames && diff->findSimilar())
-		throw std::runtime_error("diff findSimilar failed: " + repo.lastError().first);
+	if (renames && !diff->findSimilar())
+		throw std::runtime_error("diff findSimilar failed: " + repo.lastError());
 
 	struct SlGit::Diff::ForEachCB cb {
 		.file = [](const git_diff_delta &delta, float) -> int {
@@ -251,11 +251,11 @@ void handleSHA(const SlGit::Repo &repo, const std::string &sha, bool renames)
 	};
 
 	if (diff->forEach(cb))
-		throw std::runtime_error("diff failed: " + repo.lastError().first);
+		throw std::runtime_error("diff failed: " + repo.lastError());
 
 	const auto buf = diff->toBuf(GIT_DIFF_FORMAT_PATCH);
 	if (!buf)
-		throw std::runtime_error("diff to buf failed: " + repo.lastError().first);
+		throw std::runtime_error("diff to buf failed: " + repo.lastError());
 
 	//std::cout << buf->sv();
 }
@@ -302,11 +302,11 @@ void fetch_root_tree_files(const SQLConn &sql, const SlGit::Repo &lrepo, const s
 {
 	auto tree_index = lrepo.index();
 	if (!tree_index)
-		throw std::runtime_error("no index: " + lrepo.lastError().first);
+		throw std::runtime_error("no index: " + lrepo.lastError());
 
 	const auto commit = lrepo.commitRevparseSingle(bigBang);
 	if (!commit)
-		throw std::runtime_error("no big bang commit: " + lrepo.lastError().first);
+		throw std::runtime_error("no big bang commit: " + lrepo.lastError());
 
 	tree_index->readTree(*commit->tree());
 
@@ -338,11 +338,11 @@ void handleCommit(const SQLConn &sql, const SlGit::Repo &lrepo, const std::strin
 	auto diff = lrepo.diff(*commit.parent(), commit);
 	if (!diff)
 		throw std::runtime_error("cannot get a diff for " + commit.idStr() + ": " +
-					 lrepo.lastError().first);
+					 lrepo.lastError());
 	Clr(std::cerr, Clr::GREEN) << "\tfindSimilar";
 	if (diff->findSimilar())
 		throw std::runtime_error("cannot find renames in a diff: " +
-					 lrepo.lastError().first);
+					 lrepo.lastError());
 
 	struct SlGit::Diff::ForEachCB cb {
 		.file = [&sql, &sha, &end](const git_diff_delta &delta, float) -> int {
@@ -395,7 +395,7 @@ void handleCommit(const SQLConn &sql, const SlGit::Repo &lrepo, const std::strin
 
 	Clr(std::cerr, Clr::GREEN) << "\tfor each";
 	if (diff->forEach(cb))
-		throw std::runtime_error("diff failed: " + lrepo.lastError().first);
+		throw std::runtime_error("diff failed: " + lrepo.lastError());
 }
 
 void between(const SQLConn &sql, const SlGit::Repo &lrepo, const std::string &begin,
@@ -403,15 +403,15 @@ void between(const SQLConn &sql, const SlGit::Repo &lrepo, const std::string &be
 {
 	auto revsOpt = lrepo.revWalkCreate();
 	if (!revsOpt)
-		throw std::runtime_error("cannot create rev walk: " + lrepo.lastError().first);
+		throw std::runtime_error("cannot create rev walk: " + lrepo.lastError());
 	auto revs = std::move(*revsOpt);
 
 	if (!begin.empty() && !revs.hide(begin))
 		throw std::runtime_error("cannot find begin commit " + begin + ": " +
-					 lrepo.lastError().first);
+					 lrepo.lastError());
 	if (!revs.push(end))
 		throw std::runtime_error("cannot find end commit " + end + ": " +
-					 lrepo.lastError().first);
+					 lrepo.lastError());
 
 	Clr(Clr::CYAN) << begin << ".." << end;
 	static unsigned cnt = 0;
@@ -467,14 +467,14 @@ void get_commits_per_branch(const SQLConn &sql,
 		auto commit = krepo.commitRevparseSingle("origin/" + b);
 		if (!commit) {
 			Clr(Clr::YELLOW) << "cannot parse " << b << ": " <<
-					    krepo.lastError().first;
+					    krepo.lastError();
 			continue;
 		}
 		auto tree = commit->tree();
 		auto treeEntry = tree->treeEntryByPath("patches.suse/");
 		if (!treeEntry) {
 			Clr(Clr::YELLOW) << "cannot find patches.suse/ in " << b << ": " <<
-					    krepo.lastError().first;
+					    krepo.lastError();
 			continue;
 		}
 
@@ -484,7 +484,7 @@ void get_commits_per_branch(const SQLConn &sql,
 			const auto content = e.catFile(krepo);
 			if (!content)
 				throw std::runtime_error("cannot read patches.suse/" + e.name() +
-							 ": " + krepo.lastError().first);
+							 ": " + krepo.lastError());
 			const auto hs = get_hash(*content, lrepo);
 			if (!hs) {
 				Clr(std::cerr, Clr::BLUE) << "=== no git-commit in origin/" << b << ":patches.suse/" << e.name();
@@ -519,7 +519,7 @@ void buildDB()
 	const auto krepo = SlGit::Repo::open(*kpath);
 	if (!krepo)
 		throw std::runtime_error("cannot open KSOURCE_GIT (" + kpath->string() + "): " +
-					 SlGit::Repo::lastError().first);
+					 SlGit::Repo::lastError());
 
 	auto branches = std::move(*branchesOpt);
 	branches.push_back("master");
@@ -553,7 +553,7 @@ void buildDB()
 	const auto lrepo = SlGit::Repo::open(*lpath);
 	if (!lrepo)
 		throw std::runtime_error("cannot open LINUX_GIT (" + lpath->string() + "): " +
-					 SlGit::Repo::lastError().first);
+					 SlGit::Repo::lastError());
 
 	fetch_root_tree_files(sql, *lrepo, uniq_tags[0]);
 
