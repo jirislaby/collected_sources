@@ -10,7 +10,8 @@ project('collected_sources', 'c',
 add_project_arguments('-ggdb', language : 'c')
 
 progs = [
-  'algif', 'af_unix', 'check_mem', 'fadvise', 'fcntl', 'fork_leak', 'gai', 'ipv6', 'malloc_pages',
+  'algif', 'af_unix', 'check_mem', 'fadvise', 'fcntl', 'fork_flush_tlb', 'fork_leak', 'gai',
+  'ipv6', 'malloc_pages',
   'mmap', 'msgrcv', 'open_loop', 'personality', 'piskvor', 'pgid_sid', 'poll_sel', 'pps',
   'remote_tuner', 'recv_udp', 'root', 'seq_write', 'sig', 'snd', 'tun', 'usb_killer', 'vhci',
 ]
