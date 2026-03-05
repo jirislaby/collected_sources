@@ -13,6 +13,8 @@ deps = []
 deps += dependency('cxxopts')
 git = dependency('slgit++')
 deps += git
+hlp = dependency('slhelpers++')
+deps += hlp
 deps += dependency('slkerncvs++')
 deps += dependency('slsqlite++')
 
@@ -25,6 +27,6 @@ executable(prj_name,
 
 executable('log-raw',
   [ 'log-raw.cpp' ],
-  dependencies: [ git ],
+  dependencies: [ git, hlp ],
   install: true,
 )
