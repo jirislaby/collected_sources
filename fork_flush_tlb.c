@@ -6,22 +6,30 @@
 #include <unistd.h>
 
 #include <sys/io.h>
+#include <sys/ioctl.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 
-#define ITER 1000
+#if 1
 #define FORKERS 15
-#define OPENS 10
+#define OPENS 100
+#else
+#define FORKERS 1
+#define OPENS 1
+#endif
 
 static void flush_tlb()
 {
+	int fd = open("/dev/bubak", O_RDWR);
+	if (fd < 0)
+		err(1, "open");
 	for (unsigned i = 0; i < OPENS; ++i)
-		if (!open("/dev/bubak", O_RDWR) || errno != EIO)
-			errx(1, "open");
+		if (!ioctl(fd, 0, 0) || errno != EIO)
+			errx(1, "ioctl");
 	exit(0);
 }
 
-static void run_forkers()
+int main()
 {
 	pid_t forkers[FORKERS];
 	unsigned a;
@@ -35,28 +43,14 @@ static void run_forkers()
 			err(1, "DIE fork of %d'th forker", a);
 			break;
 		default:
-			//printf("\tforker%d %d\n", a, forkers[a]);
 			break;
 		}
 	}
 
-	for (a = 0; a < FORKERS; a++) {
+	flush_tlb();
+
+	for (a = 0; a < FORKERS; a++)
 		waitpid(forkers[a], NULL, 0);
-		//printf("\tforker%d (%d) done\n", a, forkers[a]);
-	}
-}
-
-int main()
-{
-	unsigned a;
-	int ret;
-
-	ret = ioperm(10, 20, 0);
-	if (ret < 0)
-		err(1, "ioperm");
-
-	for (a = 0; a < ITER; a++)
-		run_forkers();
 
 	return 0;
 }

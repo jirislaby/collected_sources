@@ -14,6 +14,7 @@ progs = [
   'ipv6', 'malloc_pages',
   'mmap', 'msgrcv', 'open_loop', 'personality', 'piskvor', 'pgid_sid', 'poll_sel', 'pps',
   'remote_tuner', 'recv_udp', 'root', 'seq_write', 'sig', 'snd', 'tun', 'usb_killer', 'vhci',
+  'yield',
 ]
 
 foreach p : progs
