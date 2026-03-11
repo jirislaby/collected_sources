@@ -1,16 +1,18 @@
-project('collected_sources', 'c',
+project('collected_sources', 'c', 'cpp',
   version: '1',
   default_options: [
     'optimization=g',
     'warning_level=2',
     #'b_lto=true',
     'b_pie=true',
+    'c_std=gnu17',
+    'cpp_std=c++20',
   ])
 
 add_project_arguments('-ggdb', language : 'c')
 
 progs = [
-  'algif', 'af_unix', 'check_mem', 'fadvise', 'fcntl', 'fork_flush_tlb', 'fork_leak', 'gai',
+  'algif', 'af_unix', 'check_mem', 'fadvise', 'fcntl', 'fork_leak', 'gai',
   'ipv6', 'malloc_pages',
   'mmap', 'msgrcv', 'open_loop', 'personality', 'piskvor', 'pgid_sid', 'poll_sel', 'pps',
   'remote_tuner', 'recv_udp', 'root', 'seq_write', 'sig', 'snd', 'tun', 'usb_killer', 'vhci',
@@ -19,6 +21,12 @@ progs = [
 
 foreach p : progs
   executable(p, p + '.c')
+endforeach
+
+cpp_progs = [ 'fork_vfork' ]
+
+foreach p : cpp_progs
+  executable(p, p + '.cpp')
 endforeach
 
 progs_spec = {
