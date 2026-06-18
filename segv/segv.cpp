@@ -11,12 +11,13 @@ namespace {
 
 void dump_regs(const ucontext_t &ucontext)
 {
-	unsigned short cs, ds, es, fs, gs;
+	unsigned short cs, ds, es, fs, gs, ss;
 	asm("mov %%cs, %0" : "=r"(cs));
 	asm("mov %%ds, %0" : "=r"(ds));
 	asm("mov %%es, %0" : "=r"(es));
 	asm("mov %%fs, %0" : "=r"(fs));
 	asm("mov %%gs, %0" : "=r"(gs));
+	asm("mov %%ss, %0" : "=r"(ss));
 	auto gregs = ucontext.uc_mcontext.gregs;
 	std::cerr << "=== dump registers ===\n";
 	std::cerr << "CSGSFS=0x" << std::hex << gregs[REG_CSGSFS] << '\n';
@@ -25,6 +26,7 @@ void dump_regs(const ucontext_t &ucontext)
 	std::cerr << "ES=0x" << std::hex << es << '\n';
 	std::cerr << "FS=0x" << std::hex << fs << '\n';
 	std::cerr << "GS=0x" << std::hex << gs << '\n';
+	std::cerr << "SS=0x" << std::hex << ss << '\n';
 	std::cerr << "RIP=0x" << std::hex << gregs[REG_RIP] << '\n';
 	std::cerr << "RSP=0x" << std::hex << gregs[REG_RSP] << '\n';
 	std::cerr << "ERR=0x" << std::hex << gregs[REG_ERR] << '\n';
@@ -49,7 +51,22 @@ void segv(int, siginfo_t *info, void *_ucontext)
 
 [[gnu::noinline]] void die(int *x)
 {
-	asm("mov %0, %%ds" : : "r"(0x1234));
+	//asm volatile("mov %%ax,%%ds" : : "a" (0x1234));
+	asm volatile(
+		"pushw  $0x002b\n"	// ss
+		"pushq  %rsp\n"	// rsp
+		"pushf\n"
+#if 0
+		"pushw  $0x7f38\n"	// cs
+#else
+		"pushw  $0x33\n"	// cs
+#endif
+		"pushq  $-1\n"//0x55cf4c05e62e\n"	// rip
+		"iretq\n"
+		//"1:\n"
+	);
+	// asm volatile("pushq 0x1235");
+	// asm volatile(".byte 0x1f");
 	*x = 42;
 }
 }
