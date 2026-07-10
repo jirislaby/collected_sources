@@ -1,14 +1,12 @@
 #include <err.h>
-#include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <unistd.h>
 
 int main()
 {
-	int fd = open("/dev/tty0", O_RDONLY);
+	int fd = STDIN_FILENO;//open("/dev/tty0", O_RDONLY);
 	char *name;
 
 	if (fd < 0)
