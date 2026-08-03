@@ -1,0 +1,17 @@
+#include <linux/module.h>
+
+char data[] = "@DATA@";
+
+static int my_init(void)
+{
+	return 0;
+}
+module_init(my_init);
+
+static void my_exit(void)
+{
+}
+module_exit(my_exit);
+
+MODULE_LICENSE("GPL");
+MODULE_DESCRIPTION("just module");

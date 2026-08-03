@@ -1,0 +1,2 @@
+option('num_modules', type : 'integer', min : 0, max : 100, value : 10)
+option('kbytes_payload', type : 'integer', min : 1, max : 1000, value : 100)
